@@ -29,7 +29,7 @@ export enum ClientRoutes {
 export const routerConfig: RouteObject[] = [
   {
     index: true,
-    loader: () => redirect('/login'),
+    loader: () => redirect(ClientRoutes.DASHBOARD),
   },
   {
     path: ClientRoutes.SIGNUP,
