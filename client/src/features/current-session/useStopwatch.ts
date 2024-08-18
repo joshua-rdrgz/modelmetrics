@@ -1,8 +1,8 @@
 import {
   StopwatchSessionEvent,
-  stopwatchWorker,
   useStopwatchSessionStore,
 } from '@/features/current-session/stopwatchSessionStore';
+import { stopwatchWorker } from '@/features/current-session/stopwatchWorker';
 import { calculateStopwatchTimeFromEvents } from '@/utils/calculateStopwatchTimeFromEvents';
 import { useCallback, useEffect, useRef } from 'react';
 
