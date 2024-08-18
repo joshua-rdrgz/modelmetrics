@@ -1,7 +1,7 @@
-import { create } from 'zustand';
+import { createBroadcastMiddleware } from '@/features/current-session/stopwatchBroadcast';
+import { create, StateCreator } from 'zustand';
+import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-import * as Comlink from 'comlink';
 
 export type StopwatchEventType =
   | 'start'
@@ -14,17 +14,6 @@ export interface StopwatchSessionEvent {
   type: StopwatchEventType;
   timestamp: number;
 }
-
-type StopwatchWorker = {
-  start: (initialElapsedTime: number) => void;
-  stop: () => void;
-  getElapsedTime: () => Promise<number>;
-};
-
-const worker = new Worker(new URL('./stopwatch.worker.ts', import.meta.url), {
-  type: 'module',
-});
-const stopwatchWorker = Comlink.wrap<StopwatchWorker>(worker);
 
 interface StopwatchSessionState {
   events: StopwatchSessionEvent[];
@@ -39,20 +28,35 @@ interface StopwatchSessionState {
 export const useStopwatchSessionStore = create<StopwatchSessionState>()(
   devtools(
     persist(
-      immer((set) => ({
-        events: [],
-        elapsedTime: 0,
-        isRunning: false,
-        addEvent: async (type) => {
-          set((state) => {
-            state.events.push({ type, timestamp: Date.now() });
-          });
-        },
-        setIsRunning: (isRunning) => set({ isRunning }),
-        setElapsedTime: (time) => set({ elapsedTime: time }),
-        resetSession: () =>
-          set({ events: [], isRunning: false, elapsedTime: 0 }),
-      })),
+      createBroadcastMiddleware('stopwatch-channel')(
+        immer((set) => ({
+          events: [],
+          elapsedTime: 0,
+          isRunning: false,
+          /**
+           * Adds event to the events array.
+           * Will be broadcast to other
+           * browser tabs.
+           */
+          addEvent: async (type) =>
+            set(
+              (state) => {
+                state.events.push({ type, timestamp: Date.now() });
+              },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              {
+                broadcastChange: true,
+              },
+            ),
+          setIsRunning: (isRunning) => set({ isRunning }),
+          setElapsedTime: (time) => set({ elapsedTime: time }),
+          resetSession: () =>
+            set({ events: [], isRunning: false, elapsedTime: 0 }),
+        })) as StateCreator<StopwatchSessionState, [['zustand/immer', never]]>,
+      ),
       {
         name: 'stopwatch-session-storage',
         storage: createJSONStorage(() => localStorage),
@@ -60,6 +64,3 @@ export const useStopwatchSessionStore = create<StopwatchSessionState>()(
     ),
   ),
 );
-
-// Export worker for global usage
-export { stopwatchWorker };
