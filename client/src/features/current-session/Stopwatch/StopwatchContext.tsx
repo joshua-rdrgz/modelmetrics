@@ -1,4 +1,4 @@
-import useStopwatch from '@/features/current-session/useStopwatch';
+import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
 import { millisecondsToReadableTimer } from '@/utils/millisecondsToReadableTimer';
 import { createContext, useContext } from 'react';
 

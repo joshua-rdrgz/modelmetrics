@@ -1,8 +1,8 @@
 import {
   StopwatchSessionEvent,
   useStopwatchSessionStore,
-} from '@/features/current-session/stopwatchSessionStore';
-import { stopwatchWorker } from '@/features/current-session/stopwatchWorker';
+} from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
+import { stopwatchWorker } from '@/features/current-session/stopwatch-worker/stopwatchWorker';
 import { calculateStopwatchTimeFromEvents } from '@/utils/calculateStopwatchTimeFromEvents';
 import { useCallback, useEffect, useRef } from 'react';
 
@@ -10,15 +10,19 @@ interface UseStopwatchParams {
   onFinishEvent?(events: StopwatchSessionEvent[]): void;
 }
 
-const useStopwatch = (options: UseStopwatchParams = {}) => {
+export const useStopwatch = (options: UseStopwatchParams = {}) => {
   const { onFinishEvent: onCustomFinishEvent = null } = options;
   const {
     events,
     elapsedTime,
-    isRunning,
+    isStopwatchRunning,
+    projectName,
+    hourlyRate,
     addEvent,
-    setIsRunning,
+    setIsStopwatchRunning,
     setElapsedTime,
+    setProjectName,
+    setHourlyRate,
     resetSession,
   } = useStopwatchSessionStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -34,7 +38,7 @@ const useStopwatch = (options: UseStopwatchParams = {}) => {
       case 'resume':
       case 'taskComplete':
         stopwatchWorker.start(timeFromEvents);
-        setIsRunning(true);
+        setIsStopwatchRunning(true);
         intervalRef.current = setInterval(async () => {
           const time = await stopwatchWorker.getElapsedTime();
           setElapsedTime(time);
@@ -42,12 +46,12 @@ const useStopwatch = (options: UseStopwatchParams = {}) => {
         break;
       case 'break':
         stopwatchWorker.stop();
-        setIsRunning(false);
+        setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
         break;
       case 'finish':
         stopwatchWorker.stop();
-        setIsRunning(false);
+        setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
         onCustomFinishEvent?.(events);
         resetSession();
@@ -59,7 +63,13 @@ const useStopwatch = (options: UseStopwatchParams = {}) => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [events, setElapsedTime, setIsRunning, onCustomFinishEvent, resetSession]);
+  }, [
+    events,
+    setElapsedTime,
+    setIsStopwatchRunning,
+    onCustomFinishEvent,
+    resetSession,
+  ]);
 
   /**
    * Begins session.
@@ -90,8 +100,12 @@ const useStopwatch = (options: UseStopwatchParams = {}) => {
   const finishSession = useCallback(() => addEvent('finish'), [addEvent]);
 
   return {
-    isRunning,
+    isStopwatchRunning,
     elapsedTime,
+    projectName,
+    hourlyRate,
+    setProjectName,
+    setHourlyRate,
     beginSession,
     takeBreak,
     resumeSession,
@@ -99,5 +113,3 @@ const useStopwatch = (options: UseStopwatchParams = {}) => {
     finishSession,
   };
 };
-
-export default useStopwatch;

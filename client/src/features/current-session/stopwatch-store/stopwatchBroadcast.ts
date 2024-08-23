@@ -1,13 +1,13 @@
-import { StopwatchSessionEvent } from '@/features/current-session/stopwatchSessionStore';
-import { StateCreator, StoreApi } from 'zustand';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 import _ from 'lodash';
+import { StateCreator, StoreApi } from 'zustand';
 
 type BroadcastOptions = { broadcastChange?: boolean };
 
 type BroadcastMessage = {
   events: StopwatchSessionEvent[];
   elapsedTime: number;
-  isRunning: boolean;
+  isStopwatchRunning: boolean;
 };
 
 export const createBroadcastMiddleware =
@@ -40,12 +40,12 @@ export const createBroadcastMiddleware =
 
       // Broadcast if necessary
       if (options?.broadcastChange) {
-        const { events, elapsedTime, isRunning } = get();
+        const { events, elapsedTime, isStopwatchRunning } = get();
         console.log('sending....');
         channel.postMessage({
           events,
           elapsedTime,
-          isRunning,
+          isStopwatchRunning,
         });
       }
     };
@@ -56,12 +56,12 @@ export const createBroadcastMiddleware =
      */
     channel.onmessage = (event: MessageEvent<BroadcastMessage>) => {
       const remoteData = event.data;
-      const { events, elapsedTime, isRunning } = get();
+      const { events, elapsedTime, isStopwatchRunning } = get();
 
       const localData = {
         events,
         elapsedTime,
-        isRunning,
+        isStopwatchRunning,
       };
 
       if (!_.isEqual(remoteData.events, localData.events)) {

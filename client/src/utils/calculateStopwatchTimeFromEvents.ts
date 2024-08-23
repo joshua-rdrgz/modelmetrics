@@ -1,4 +1,4 @@
-import { StopwatchSessionEvent } from '@/features/current-session/stopwatchSessionStore';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
 /**
  * Calculates the total elapsed time based on the session events.

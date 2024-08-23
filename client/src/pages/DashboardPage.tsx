@@ -1,5 +1,5 @@
-import Stopwatch from '@/features/current-session/Stopwatch';
-import { StopwatchSessionEvent } from '@/features/current-session/stopwatchSessionStore';
+import { SW } from '@/features/current-session/Stopwatch';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
 export const DashboardPage = () => {
   const handleFinishEvent = (events: StopwatchSessionEvent[]) => {
@@ -8,9 +8,10 @@ export const DashboardPage = () => {
   };
 
   return (
-    <Stopwatch.Root onFinishEvent={handleFinishEvent}>
-      <Stopwatch.Display />
-      <Stopwatch.Actions />
-    </Stopwatch.Root>
+    <SW.Root onFinishEvent={handleFinishEvent}>
+      <SW.Display />
+      <SW.Actions />
+      <SW.SessionName />
+    </SW.Root>
   );
 };
