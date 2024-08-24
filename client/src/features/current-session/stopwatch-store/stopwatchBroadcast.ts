@@ -8,6 +8,8 @@ type BroadcastMessage = {
   events: StopwatchSessionEvent[];
   elapsedTime: number;
   isStopwatchRunning: boolean;
+  projectName: string;
+  hourlyRate: number;
 };
 
 export const createBroadcastMiddleware =
@@ -40,12 +42,21 @@ export const createBroadcastMiddleware =
 
       // Broadcast if necessary
       if (options?.broadcastChange) {
-        const { events, elapsedTime, isStopwatchRunning } = get();
+        const {
+          events,
+          elapsedTime,
+          isStopwatchRunning,
+          projectName,
+          hourlyRate,
+        } = get();
+
         console.log('sending....');
         channel.postMessage({
           events,
           elapsedTime,
           isStopwatchRunning,
+          projectName,
+          hourlyRate,
         });
       }
     };
@@ -56,15 +67,28 @@ export const createBroadcastMiddleware =
      */
     channel.onmessage = (event: MessageEvent<BroadcastMessage>) => {
       const remoteData = event.data;
-      const { events, elapsedTime, isStopwatchRunning } = get();
+      const {
+        events,
+        elapsedTime,
+        isStopwatchRunning,
+        projectName,
+        hourlyRate,
+      } = get();
 
       const localData = {
         events,
         elapsedTime,
         isStopwatchRunning,
+        projectName,
+        hourlyRate,
       };
 
-      if (!_.isEqual(remoteData.events, localData.events)) {
+      const shouldSync =
+        !_.isEqual(remoteData.events, localData.events) ||
+        !_.isEqual(remoteData.projectName, localData.projectName) ||
+        !_.isEqual(remoteData.hourlyRate, localData.hourlyRate);
+
+      if (shouldSync) {
         console.log('syncing....');
         set({
           ...get(),

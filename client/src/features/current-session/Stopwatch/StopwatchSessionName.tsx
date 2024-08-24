@@ -1,12 +1,20 @@
 import { useStopwatchContext } from '@/features/current-session/Stopwatch/StopwatchContext';
 import { Button } from '@/ui/button';
 import { Input } from '@/ui/input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const StopwatchSessionName: React.FC = () => {
   const { projectName, setProjectName } = useStopwatchContext();
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(projectName);
+
+  /**
+   * Sync internal state
+   * with broadcasted updates
+   */
+  useEffect(() => {
+    setInputValue(projectName);
+  }, [projectName]);
 
   const handleSaveClick = () => {
     setProjectName(inputValue);

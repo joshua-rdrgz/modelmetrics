@@ -56,13 +56,27 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
 
           // ** STATE UPDATERS **
           setProjectName: (name) =>
-            set((state) => {
-              state.projectName = name;
-            }),
+            set(
+              (state) => {
+                state.projectName = name;
+              },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true },
+            ),
           setHourlyRate: (rate) =>
-            set((state) => {
-              state.hourlyRate = rate;
-            }),
+            set(
+              (state) => {
+                state.hourlyRate = rate;
+              },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true },
+            ),
           /**
            * Adds event to the events array.
            * Will be broadcast to other
