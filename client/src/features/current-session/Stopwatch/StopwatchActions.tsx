@@ -1,5 +1,7 @@
+import React from 'react';
 import { useStopwatchContext } from '@/features/current-session/Stopwatch/StopwatchContext';
 import { Button } from '@/ui/button';
+import { useStopwatchSessionStore } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
 export const StopwatchActions: React.FC = () => {
   const {
@@ -11,6 +13,16 @@ export const StopwatchActions: React.FC = () => {
     markTaskCompletion,
     finishSession,
   } = useStopwatchContext();
+  const { setIsFinalizingSession, isStopwatchEventsFinished } =
+    useStopwatchSessionStore();
+
+  if (isStopwatchEventsFinished()) {
+    return (
+      <Button onClick={() => setIsFinalizingSession(true)}>
+        Open Finalization Dialog
+      </Button>
+    );
+  }
 
   return (
     <div className='flex space-x-2'>

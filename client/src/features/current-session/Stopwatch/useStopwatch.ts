@@ -1,17 +1,9 @@
-import {
-  StopwatchSessionEvent,
-  useStopwatchSessionStore,
-} from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
+import { useStopwatchSessionStore } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 import { stopwatchWorker } from '@/features/current-session/stopwatch-worker/stopwatchWorker';
 import { calculateStopwatchTimeFromEvents } from '@/utils/calculateStopwatchTimeFromEvents';
 import { useCallback, useEffect, useRef } from 'react';
 
-interface UseStopwatchParams {
-  onFinishEvent?(events: StopwatchSessionEvent[]): void;
-}
-
-export const useStopwatch = (options: UseStopwatchParams = {}) => {
-  const { onFinishEvent: onCustomFinishEvent = null } = options;
+export const useStopwatch = () => {
   const {
     events,
     elapsedTime,
@@ -23,8 +15,9 @@ export const useStopwatch = (options: UseStopwatchParams = {}) => {
     setElapsedTime,
     setProjectName,
     setHourlyRate,
-    resetSession,
+    setIsFinalizingSession,
   } = useStopwatchSessionStore();
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -53,8 +46,7 @@ export const useStopwatch = (options: UseStopwatchParams = {}) => {
         stopwatchWorker.stop();
         setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
-        onCustomFinishEvent?.(events);
-        resetSession();
+        setIsFinalizingSession(true);
         break;
       default:
         console.error('Invalid event type in useStopwatch: ', lastEvent.type);
@@ -63,13 +55,7 @@ export const useStopwatch = (options: UseStopwatchParams = {}) => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [
-    events,
-    setElapsedTime,
-    setIsStopwatchRunning,
-    onCustomFinishEvent,
-    resetSession,
-  ]);
+  }, [events, setElapsedTime, setIsStopwatchRunning, setIsFinalizingSession]);
 
   /**
    * Begins session.

@@ -32,6 +32,12 @@ interface StopwatchSessionStateUpdaters {
   setElapsedTime: (time: number) => void;
   resetSession: () => void;
   setIsFinalizingSession: (isFinalizingSession: boolean) => void;
+  /**
+   * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
+   * This method is used to indicate when no more events can be added to the events array.
+   * @returns {boolean} True if the stopwatch events are finished, false otherwise.
+   */
+  isStopwatchEventsFinished: () => boolean;
 }
 
 type StopwatchSessionStore = StopwatchSessionState &
@@ -50,7 +56,7 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
   devtools(
     persist(
       createBroadcastMiddleware('stopwatch-channel')(
-        immer((set) => ({
+        immer((set, get) => ({
           // ** STATE **
           ...defaultStopwatchSessionState,
 
@@ -99,8 +105,26 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
             set({ isStopwatchRunning }),
           setElapsedTime: (time) => set({ elapsedTime: time }),
           resetSession: () => set(defaultStopwatchSessionState),
+          /**
+           * Sets the state of the finalization dialog.
+           * This method controls whether the finalization dialog is open or closed.
+           * @param {boolean} isFinalizingSession - The new state of the finalization dialog.
+           */
           setIsFinalizingSession: (isFinalizingSession) =>
-            set({ isFinalizingSession }),
+            set(
+              { isFinalizingSession },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true },
+            ),
+          isStopwatchEventsFinished: () => {
+            const events = get().events;
+            return (
+              events.length > 0 && events[events.length - 1].type === 'finish'
+            );
+          },
         })) as StateCreator<StopwatchSessionStore, [['zustand/immer', never]]>,
       ),
       {
