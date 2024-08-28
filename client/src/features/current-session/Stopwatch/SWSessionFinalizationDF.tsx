@@ -4,6 +4,7 @@ import * as D from '@/ui/dialog';
 import * as F from '@/ui/form';
 import { Input } from '@/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -41,6 +42,14 @@ export const SWSessionFinalizationDF: React.FC<
     },
   });
 
+  /**
+   * Form resets on state updates
+   * from Zustand.
+   */
+  useEffect(() => {
+    form.reset({ projectName, hourlyRate });
+  }, [projectName, hourlyRate, form]);
+
   const handleSubmit = form.handleSubmit((data: SWSessionFinalizationData) => {
     onSubmit(data);
     setIsFinalizingSession(false);
@@ -60,6 +69,9 @@ export const SWSessionFinalizationDF: React.FC<
       <D.Content>
         <D.Header>
           <D.Title>Finalize Session</D.Title>
+          <D.Description>
+            Please review and confirm your session details.
+          </D.Description>
         </D.Header>
         <F.Root formMethods={form} onSubmit={handleSubmit}>
           <F.Field
