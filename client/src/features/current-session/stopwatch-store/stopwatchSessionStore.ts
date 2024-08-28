@@ -45,7 +45,7 @@ type StopwatchSessionStore = StopwatchSessionState &
 
 const defaultStopwatchSessionState: StopwatchSessionState = {
   projectName: '',
-  hourlyRate: 0,
+  hourlyRate: 40,
   events: [],
   elapsedTime: 0,
   isStopwatchRunning: false,
