@@ -8,18 +8,20 @@ import {
   StopwatchSessionEvent,
 } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
+export type FinalizationEventData = {
+  projectName: string;
+  hourlyRate: number;
+  events: StopwatchSessionEvent[];
+};
+
 type StopwatchRootProps = {
   children: React.ReactNode;
-  onFinishEvent?: (data: {
-    projectName: string;
-    hourlyRate: number;
-    events: StopwatchSessionEvent[];
-  }) => void;
+  onFinalizeSession?: (data: FinalizationEventData) => void;
 };
 
 export const StopwatchRoot: React.FC<StopwatchRootProps> = ({
   children,
-  onFinishEvent,
+  onFinalizeSession,
 }) => {
   const stopwatchState = useStopwatch();
   const readableTimer = millisecondsToReadableTimer(stopwatchState.elapsedTime);
@@ -31,7 +33,7 @@ export const StopwatchRoot: React.FC<StopwatchRootProps> = ({
     hourlyRate: number;
   }) => {
     console.log('Session finalized:', { ...data, events });
-    onFinishEvent?.({ ...data, events });
+    onFinalizeSession?.({ ...data, events });
     resetSession();
   };
 

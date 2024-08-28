@@ -1,14 +1,14 @@
 import { SW } from '@/features/current-session/Stopwatch';
-import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
+import { FinalizationEventData } from '@/features/current-session/Stopwatch/StopwatchRoot';
 
 export const DashboardPage = () => {
-  const handleFinishEvent = (events: StopwatchSessionEvent[]) => {
+  const handleFinalizeSession = (data: FinalizationEventData) => {
     console.log('Dashboard Page: Finish event triggered');
-    console.log('Events:', events);
+    console.log('Events:', data);
   };
 
   return (
-    <SW.Root onFinishEvent={handleFinishEvent}>
+    <SW.Root onFinalizeSession={handleFinalizeSession}>
       <SW.Display />
       <SW.Actions />
       <SW.SessionName />
