@@ -1,7 +1,7 @@
 import { useStopwatchContext } from '@/features/current-session/Stopwatch/StopwatchContext';
 import { Button } from '@/ui/button';
 import { Input } from '@/ui/input';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const StopwatchSessionName: React.FC = () => {
   const { projectName, setProjectName } = useStopwatchContext();

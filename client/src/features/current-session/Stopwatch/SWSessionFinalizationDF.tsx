@@ -13,7 +13,7 @@ const stopwatchFinalizationFormSchema = z.object({
   hourlyRate: z.number().min(0, 'Hourly rate must be 0 or greater'),
 });
 
-type SWSessionFinalizationData = z.infer<
+export type SWSessionFinalizationData = z.infer<
   typeof stopwatchFinalizationFormSchema
 >;
 

@@ -1,12 +1,11 @@
-import React from 'react';
+import {
+  SWSessionFinalizationData,
+  SWSessionFinalizationDF,
+} from '@/features/current-session/Stopwatch/SWSessionFinalizationDF';
 import { StopwatchContextProvider } from '@/features/current-session/Stopwatch/StopwatchContext';
 import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 import { millisecondsToReadableTimer } from '@/utils/millisecondsToReadableTimer';
-import { SWSessionFinalizationDF } from '@/features/current-session/Stopwatch/SWSessionFinalizationDF';
-import {
-  useStopwatchSessionStore,
-  StopwatchSessionEvent,
-} from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
 export type FinalizationEventData = {
   projectName: string;
@@ -25,20 +24,14 @@ export const StopwatchRoot: React.FC<StopwatchRootProps> = ({
 }) => {
   const stopwatchState = useStopwatch();
   const readableTimer = millisecondsToReadableTimer(stopwatchState.elapsedTime);
-  const { resetSession, setIsFinalizingSession, events } =
-    useStopwatchSessionStore();
 
-  const handleFinalize = (data: {
-    projectName: string;
-    hourlyRate: number;
-  }) => {
-    console.log('Session finalized:', { ...data, events });
-    onFinalizeSession?.({ ...data, events });
-    resetSession();
+  const handleFinalize = (data: SWSessionFinalizationData) => {
+    onFinalizeSession?.({ ...data, events: stopwatchState.events });
+    stopwatchState.resetSession();
   };
 
   const handleCancel = () => {
-    setIsFinalizingSession(false);
+    stopwatchState.setIsFinalizingSession(false);
   };
 
   return (

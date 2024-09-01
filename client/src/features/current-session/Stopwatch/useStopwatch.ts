@@ -4,49 +4,37 @@ import { calculateStopwatchTimeFromEvents } from '@/utils/calculateStopwatchTime
 import { useCallback, useEffect, useRef } from 'react';
 
 export const useStopwatch = () => {
-  const {
-    events,
-    elapsedTime,
-    isStopwatchRunning,
-    projectName,
-    hourlyRate,
-    addEvent,
-    setIsStopwatchRunning,
-    setElapsedTime,
-    setProjectName,
-    setHourlyRate,
-    setIsFinalizingSession,
-  } = useStopwatchSessionStore();
+  const swStore = useStopwatchSessionStore();
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (events.length === 0) return;
+    if (swStore.events.length === 0) return;
 
-    const lastEvent = events[events.length - 1];
-    const timeFromEvents = calculateStopwatchTimeFromEvents(events);
+    const lastEvent = swStore.events[swStore.events.length - 1];
+    const timeFromEvents = calculateStopwatchTimeFromEvents(swStore.events);
 
     switch (lastEvent.type) {
       case 'start':
       case 'resume':
       case 'taskComplete':
         stopwatchWorker.start(timeFromEvents);
-        setIsStopwatchRunning(true);
+        swStore.setIsStopwatchRunning(true);
         intervalRef.current = setInterval(async () => {
           const time = await stopwatchWorker.getElapsedTime();
-          setElapsedTime(time);
+          swStore.setElapsedTime(time);
         }, 10);
         break;
       case 'break':
         stopwatchWorker.stop();
-        setIsStopwatchRunning(false);
+        swStore.setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
         break;
       case 'finish':
         stopwatchWorker.stop();
-        setIsStopwatchRunning(false);
+        swStore.setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
-        setIsFinalizingSession(true);
+        swStore.setIsFinalizingSession(true);
         break;
       default:
         console.error('Invalid event type in useStopwatch: ', lastEvent.type);
@@ -55,43 +43,55 @@ export const useStopwatch = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [events, setElapsedTime, setIsStopwatchRunning, setIsFinalizingSession]);
+  }, [
+    swStore.events,
+    swStore.setIsStopwatchRunning,
+    swStore.setElapsedTime,
+    swStore.setIsFinalizingSession,
+  ]);
 
   /**
    * Begins session.
    */
-  const beginSession = useCallback(() => addEvent('start'), [addEvent]);
+  const beginSession = useCallback(
+    () => swStore.addEvent('start'),
+    [swStore.addEvent],
+  );
 
   /**
    * Pauses a running session.
    */
-  const takeBreak = useCallback(() => addEvent('break'), [addEvent]);
+  const takeBreak = useCallback(
+    () => swStore.addEvent('break'),
+    [swStore.addEvent],
+  );
 
   /**
    * Resumes a paused session.
    */
-  const resumeSession = useCallback(() => addEvent('resume'), [addEvent]);
+  const resumeSession = useCallback(
+    () => swStore.addEvent('resume'),
+    [swStore.addEvent],
+  );
 
   /**
    * Marks a task completion event.  Does not stop stopwatch.
    */
   const markTaskCompletion = useCallback(
-    () => addEvent('taskComplete'),
-    [addEvent],
+    () => swStore.addEvent('taskComplete'),
+    [swStore.addEvent],
   );
 
   /**
    * Finalize session.
    */
-  const finishSession = useCallback(() => addEvent('finish'), [addEvent]);
+  const finishSession = useCallback(
+    () => swStore.addEvent('finish'),
+    [swStore.addEvent],
+  );
 
   return {
-    isStopwatchRunning,
-    elapsedTime,
-    projectName,
-    hourlyRate,
-    setProjectName,
-    setHourlyRate,
+    ...swStore,
     beginSession,
     takeBreak,
     resumeSession,

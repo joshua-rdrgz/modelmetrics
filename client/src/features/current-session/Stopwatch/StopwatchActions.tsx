@@ -1,7 +1,5 @@
-import React from 'react';
 import { useStopwatchContext } from '@/features/current-session/Stopwatch/StopwatchContext';
 import { Button } from '@/ui/button';
-import { useStopwatchSessionStore } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 
 export const StopwatchActions: React.FC = () => {
   const {
@@ -12,9 +10,9 @@ export const StopwatchActions: React.FC = () => {
     resumeSession,
     markTaskCompletion,
     finishSession,
+    setIsFinalizingSession,
+    isStopwatchEventsFinished,
   } = useStopwatchContext();
-  const { setIsFinalizingSession, isStopwatchEventsFinished } =
-    useStopwatchSessionStore();
 
   if (isStopwatchEventsFinished()) {
     return (
