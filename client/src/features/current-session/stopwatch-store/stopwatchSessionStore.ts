@@ -105,7 +105,15 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
           setIsStopwatchRunning: (isStopwatchRunning) =>
             set({ isStopwatchRunning }),
           setElapsedTime: (time) => set({ elapsedTime: time }),
-          resetSession: () => set(defaultStopwatchSessionState),
+          resetSession: () =>
+            set(
+              defaultStopwatchSessionState,
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true, broadcastType: 'reset' },
+            ),
           /**
            * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
            * This method is used to indicate when no more events can be added to the events array.
