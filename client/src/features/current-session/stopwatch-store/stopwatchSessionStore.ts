@@ -70,7 +70,7 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
               // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
               // @ts-expect-error The original `set` function only expects 2 arguments,
               // but the custom broadcast middleware extends it to 3
-              { broadcastChange: true },
+              { broadcastChange: true, broadcastType: 'projectInfo' },
             ),
           setHourlyRate: (rate) =>
             set(
@@ -81,7 +81,7 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
               // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
               // @ts-expect-error The original `set` function only expects 2 arguments,
               // but the custom broadcast middleware extends it to 3
-              { broadcastChange: true },
+              { broadcastChange: true, broadcastType: 'projectInfo' },
             ),
           /**
            * Adds event to the events array.
@@ -92,23 +92,24 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
             set(
               (state) => {
                 state.events.push({ type, timestamp: Date.now() });
+                if (type === 'finish') {
+                  state.isFinalizingSession = true;
+                }
               },
               false,
               // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
               // @ts-expect-error The original `set` function only expects 2 arguments,
               // but the custom broadcast middleware extends it to 3
-              {
-                broadcastChange: true,
-              },
+              { broadcastChange: true, broadcastType: 'events' },
             ),
           setIsStopwatchRunning: (isStopwatchRunning) =>
             set({ isStopwatchRunning }),
           setElapsedTime: (time) => set({ elapsedTime: time }),
           resetSession: () => set(defaultStopwatchSessionState),
           /**
-           * Sets the state of the finalization dialog.
-           * This method controls whether the finalization dialog is open or closed.
-           * @param {boolean} isFinalizingSession - The new state of the finalization dialog.
+           * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
+           * This method is used to indicate when no more events can be added to the events array.
+           * @returns {boolean} True if the stopwatch events are finished, false otherwise.
            */
           setIsFinalizingSession: (isFinalizingSession) =>
             set(
