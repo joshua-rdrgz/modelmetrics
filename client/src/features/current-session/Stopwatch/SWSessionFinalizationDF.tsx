@@ -1,4 +1,4 @@
-import { useStopwatchSessionStore } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
+import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
 import { Button } from '@/ui/button';
 import * as D from '@/ui/dialog';
 import * as F from '@/ui/form';
@@ -32,7 +32,9 @@ export const SWSessionFinalizationDF: React.FC<
     isFinalizingSession,
     setIsFinalizingSession,
     isStopwatchEventsFinished,
-  } = useStopwatchSessionStore();
+    activeDialogTabId,
+    dialogTabId,
+  } = useStopwatch();
 
   const form = useForm<SWSessionFinalizationData>({
     resolver: zodResolver(stopwatchFinalizationFormSchema),
@@ -60,12 +62,23 @@ export const SWSessionFinalizationDF: React.FC<
     setIsFinalizingSession(false);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleCancel();
+    }
+  };
+
   if (!isStopwatchEventsFinished()) {
     return null;
   }
 
+  const isActiveTab = activeDialogTabId === dialogTabId;
+
   return (
-    <D.Root open={isFinalizingSession} onOpenChange={setIsFinalizingSession}>
+    <D.Root
+      open={isFinalizingSession && isActiveTab}
+      onOpenChange={handleOpenChange}
+    >
       <D.Content>
         <D.Header>
           <D.Title>Finalize Session</D.Title>

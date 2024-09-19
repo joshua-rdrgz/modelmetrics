@@ -12,11 +12,26 @@ export const StopwatchActions: React.FC = () => {
     finishSession,
     setIsFinalizingSession,
     isStopwatchEventsFinished,
+    activeDialogTabId,
+    dialogTabId,
+    setActiveDialogTabId,
   } = useStopwatchContext();
 
   if (isStopwatchEventsFinished()) {
+    const handleOpenDialog = () => {
+      if (activeDialogTabId === null) {
+        setActiveDialogTabId(dialogTabId);
+        setIsFinalizingSession(true);
+      }
+    };
+
     return (
-      <Button onClick={() => setIsFinalizingSession(true)}>
+      <Button
+        onClick={handleOpenDialog}
+        disabled={
+          activeDialogTabId !== null && activeDialogTabId !== dialogTabId
+        }
+      >
         Open Finalization Dialog
       </Button>
     );

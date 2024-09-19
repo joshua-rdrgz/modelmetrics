@@ -7,7 +7,6 @@ export const useStopwatch = () => {
   const swStore = useStopwatchSessionStore();
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
     if (swStore.events.length === 0) return;
@@ -27,34 +26,19 @@ export const useStopwatch = () => {
         }, 10);
         break;
       case 'break':
-        stopwatchWorker.stop();
-        swStore.setIsStopwatchRunning(false);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        break;
       case 'finish':
         stopwatchWorker.stop();
         swStore.setIsStopwatchRunning(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
-        if (!isInitialMount.current) {
-          swStore.setIsFinalizingSession(true);
-        }
         break;
       default:
         console.error('Invalid event type in useStopwatch: ', lastEvent.type);
     }
 
-    // Mark end of initial mount
-    isInitialMount.current = false;
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [
-    swStore.events,
-    swStore.setIsStopwatchRunning,
-    swStore.setElapsedTime,
-    swStore.setIsFinalizingSession,
-  ]);
+  }, [swStore.events, swStore.setIsStopwatchRunning, swStore.setElapsedTime]);
 
   /**
    * Begins session.

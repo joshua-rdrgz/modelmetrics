@@ -3,7 +3,7 @@ import { FinalizationEventData } from '@/features/current-session/Stopwatch/Stop
 import _ from 'lodash';
 import { StateCreator, StoreApi } from 'zustand';
 
-type BroadcastType = 'events' | 'projectInfo' | 'reset';
+type BroadcastType = 'events' | 'projectInfo' | 'reset' | 'activeDialogTabId';
 
 type BroadcastOptions = {
   broadcastChange?: boolean;
@@ -12,7 +12,7 @@ type BroadcastOptions = {
 
 type BroadcastMessage = {
   type: BroadcastType;
-  data: Partial<FinalizationEventData>;
+  data: Partial<FinalizationEventData & { activeDialogTabId: string | null }>;
 };
 
 export const createBroadcastMiddleware =
@@ -22,6 +22,7 @@ export const createBroadcastMiddleware =
       events: StopwatchSessionEvent[];
       projectName: string;
       hourlyRate: number;
+      activeDialogTabId: string | null;
     },
   >(
     f: StateCreator<T>,
@@ -52,7 +53,7 @@ export const createBroadcastMiddleware =
       );
 
       if (options?.broadcastChange && options?.broadcastType) {
-        const { events, projectName, hourlyRate } = get();
+        const { events, projectName, hourlyRate, activeDialogTabId } = get();
 
         // Create Broadcast Message
         const message: BroadcastMessage = {
@@ -71,6 +72,9 @@ export const createBroadcastMiddleware =
             break;
           case 'reset':
             // No additional data needed for reset
+            break;
+          case 'activeDialogTabId':
+            message.data.activeDialogTabId = activeDialogTabId;
             break;
         }
 
@@ -102,6 +106,19 @@ export const createBroadcastMiddleware =
           break;
         case 'reset':
           set(f(setWithBroadcast, get, api));
+          break;
+        case 'activeDialogTabId':
+          if (
+            !_.isEqual(
+              remoteData.activeDialogTabId,
+              localData.activeDialogTabId,
+            )
+          ) {
+            set({
+              ...localData,
+              activeDialogTabId: remoteData.activeDialogTabId,
+            });
+          }
           break;
       }
     };

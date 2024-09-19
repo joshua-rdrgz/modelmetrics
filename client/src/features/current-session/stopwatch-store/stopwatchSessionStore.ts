@@ -1,4 +1,5 @@
 import { createBroadcastMiddleware } from '@/features/current-session/stopwatch-store/stopwatchBroadcast';
+import { generateUniqueBrowserTabId } from '@/utils/generateUniqueBrowserTabId';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -22,6 +23,9 @@ interface StopwatchSessionState {
   elapsedTime: number;
   isStopwatchRunning: boolean;
   isFinalizingSession: boolean;
+  activeDialogTabId: string | null;
+  dialogTabId: string | null;
+  finishEventTabId: string | null;
 }
 
 interface StopwatchSessionStateUpdaters {
@@ -32,6 +36,9 @@ interface StopwatchSessionStateUpdaters {
   setElapsedTime: (time: number) => void;
   resetSession: () => void;
   setIsFinalizingSession: (isFinalizingSession: boolean) => void;
+  setActiveDialogTabId: (tabId: string | null) => void;
+  setDialogTabId: (tabId: string) => void;
+  setFinishEventTabId: (tabId: string | null) => void;
   /**
    * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
    * This method is used to indicate when no more events can be added to the events array.
@@ -50,6 +57,9 @@ const defaultStopwatchSessionState: StopwatchSessionState = {
   elapsedTime: 0,
   isStopwatchRunning: false,
   isFinalizingSession: false,
+  activeDialogTabId: null,
+  dialogTabId: generateUniqueBrowserTabId(),
+  finishEventTabId: null,
 };
 
 export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
@@ -94,6 +104,7 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
                 state.events.push({ type, timestamp: Date.now() });
                 if (type === 'finish') {
                   state.isFinalizingSession = true;
+                  state.finishEventTabId = state.dialogTabId;
                 }
               },
               false,
@@ -107,18 +118,20 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
           setElapsedTime: (time) => set({ elapsedTime: time }),
           resetSession: () =>
             set(
-              defaultStopwatchSessionState,
+              (state) => {
+                const newState = { ...defaultStopwatchSessionState };
+                newState.dialogTabId = state.dialogTabId;
+                return newState;
+              },
               false,
               // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
               // @ts-expect-error The original `set` function only expects 2 arguments,
               // but the custom broadcast middleware extends it to 3
-              { broadcastChange: true, broadcastType: 'reset' },
+              {
+                broadcastChange: true,
+                broadcastType: 'reset',
+              },
             ),
-          /**
-           * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
-           * This method is used to indicate when no more events can be added to the events array.
-           * @returns {boolean} True if the stopwatch events are finished, false otherwise.
-           */
           setIsFinalizingSession: (isFinalizingSession) =>
             set(
               { isFinalizingSession },
@@ -126,8 +139,29 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
               // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
               // @ts-expect-error The original `set` function only expects 2 arguments,
               // but the custom broadcast middleware extends it to 3
-              { broadcastChange: true },
+              {
+                broadcastChange: true,
+                broadcastType: 'isFinalizingSession',
+              },
             ),
+          setActiveDialogTabId: (tabId: string | null) =>
+            set(
+              (state) => {
+                state.activeDialogTabId = tabId;
+              },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true, broadcastType: 'activeDialogTabId' },
+            ),
+          setDialogTabId: (dialogTabId) => set({ dialogTabId }),
+          setFinishEventTabId: (finishEventTabId) => set({ finishEventTabId }),
+          /**
+           * Determines if the stopwatch events are finished (i.e., the "finish" event has occurred).
+           * This method is used to indicate when no more events can be added to the events array.
+           * @returns {boolean} True if the stopwatch events are finished, false otherwise.
+           */
           isStopwatchEventsFinished: () => {
             const events = get().events;
             return (
@@ -139,6 +173,17 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
       {
         name: 'stopwatch-session-storage',
         storage: createJSONStorage(() => localStorage),
+        partialize: (state) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { dialogTabId: _, ...rest } = state;
+          return rest;
+        },
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            const tabId = generateUniqueBrowserTabId();
+            state.setDialogTabId(tabId);
+          }
+        },
       },
     ),
   ),
