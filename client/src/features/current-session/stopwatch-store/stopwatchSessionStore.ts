@@ -26,12 +26,15 @@ interface StopwatchSessionState {
   activeDialogTabId: string | null;
   dialogTabId: string | null;
   finishEventTabId: string | null;
+  sessionId: string | null;
+  phase: 'capture' | 'refine';
 }
 
 interface StopwatchSessionStateUpdaters {
   setProjectName: (name: string) => void;
   setHourlyRate: (rate: number) => void;
   addEvent: (type: StopwatchEventType) => Promise<void>;
+  updateEvent: (index: number, updatedEvent: StopwatchSessionEvent) => void;
   setIsStopwatchRunning: (isStopwatchRunning: boolean) => void;
   setElapsedTime: (time: number) => void;
   resetSession: () => void;
@@ -44,7 +47,7 @@ interface StopwatchSessionStateUpdaters {
    * This method is used to indicate when no more events can be added to the events array.
    * @returns {boolean} True if the stopwatch events are finished, false otherwise.
    */
-  isStopwatchEventsFinished: () => boolean;
+  isRefiningPhase: () => boolean;
 }
 
 type StopwatchSessionStore = StopwatchSessionState &
@@ -60,6 +63,8 @@ const defaultStopwatchSessionState: StopwatchSessionState = {
   activeDialogTabId: null,
   dialogTabId: generateUniqueBrowserTabId(),
   finishEventTabId: null,
+  sessionId: null,
+  phase: 'capture',
 };
 
 export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
@@ -105,6 +110,8 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
                 if (type === 'finish') {
                   state.isFinalizingSession = true;
                   state.finishEventTabId = state.dialogTabId;
+                  state.sessionId = crypto.randomUUID();
+                  state.phase = 'refine';
                 }
               },
               false,
@@ -113,6 +120,15 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
               // but the custom broadcast middleware extends it to 3
               { broadcastChange: true, broadcastType: 'events' },
             ),
+          updateEvent: (index: number, updatedEvent: StopwatchSessionEvent) =>
+            set((state) => {
+              const newEvents = [...state.events];
+              newEvents[index] = updatedEvent;
+              const sortedEvents = newEvents.sort(
+                (a, b) => a.timestamp - b.timestamp,
+              );
+              return { events: sortedEvents };
+            }),
           setIsStopwatchRunning: (isStopwatchRunning) =>
             set({ isStopwatchRunning }),
           setElapsedTime: (time) => set({ elapsedTime: time }),
@@ -162,12 +178,7 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
            * This method is used to indicate when no more events can be added to the events array.
            * @returns {boolean} True if the stopwatch events are finished, false otherwise.
            */
-          isStopwatchEventsFinished: () => {
-            const events = get().events;
-            return (
-              events.length > 0 && events[events.length - 1].type === 'finish'
-            );
-          },
+          isRefiningPhase: (): boolean => get().phase === 'refine',
         })) as StateCreator<StopwatchSessionStore, [['zustand/immer', never]]>,
       ),
       {

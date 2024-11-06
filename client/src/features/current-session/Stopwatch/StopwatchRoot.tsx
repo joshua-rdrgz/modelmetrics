@@ -34,7 +34,7 @@ export const StopwatchRoot: React.FC<StopwatchRootProps> = ({
   }, [stopwatchState.finishEventTabId, stopwatchState.dialogTabId]);
 
   const handleFinalize = (data: SWSessionFinalizationData) => {
-    onFinalizeSession?.({ ...data, events: stopwatchState.events });
+    onFinalizeSession?.(data);
     stopwatchState.resetSession();
   };
 

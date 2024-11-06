@@ -1,10 +1,13 @@
+import { AdjustableEvents } from '@/features/current-session/Stopwatch/AdjustableEvents';
+import { SessionFinalizationStats } from '@/features/current-session/Stopwatch/SessionFinalizationStats';
 import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 import { Button } from '@/ui/button';
 import * as D from '@/ui/dialog';
 import * as F from '@/ui/form';
 import { Input } from '@/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -15,7 +18,7 @@ const stopwatchFinalizationFormSchema = z.object({
 
 export type SWSessionFinalizationData = z.infer<
   typeof stopwatchFinalizationFormSchema
->;
+> & { events: StopwatchSessionEvent[] };
 
 interface SWSessionFinalizationDFProps {
   onSubmit: (data: SWSessionFinalizationData) => void;
@@ -31,12 +34,18 @@ export const SWSessionFinalizationDF: React.FC<
     events,
     isFinalizingSession,
     setIsFinalizingSession,
-    isStopwatchEventsFinished,
+    isRefiningPhase,
     activeDialogTabId,
     dialogTabId,
+    updateEvent,
   } = useStopwatch();
 
-  const form = useForm<SWSessionFinalizationData>({
+  const [activePage, setActivePage] = useState<'stats' | 'events'>('stats');
+  const [editingEventIndex, setEditingEventIndex] = useState<number | null>(
+    null,
+  );
+
+  const form = useForm<Omit<SWSessionFinalizationData, 'events'>>({
     resolver: zodResolver(stopwatchFinalizationFormSchema),
     defaultValues: {
       projectName,
@@ -44,31 +53,50 @@ export const SWSessionFinalizationDF: React.FC<
     },
   });
 
-  /**
-   * Form resets on state updates
-   * from Zustand.
-   */
+  // Reset form when a new session starts
   useEffect(() => {
-    form.reset({ projectName, hourlyRate });
-  }, [projectName, hourlyRate, form]);
+    if (isFinalizingSession) {
+      form.reset({
+        projectName,
+        hourlyRate,
+      });
+    }
+  }, [isFinalizingSession, projectName, hourlyRate, form]);
 
-  const handleSubmit = form.handleSubmit((data: SWSessionFinalizationData) => {
-    onSubmit(data);
-    setIsFinalizingSession(false);
-  });
+  const handleSubmit = useCallback(
+    form.handleSubmit((data: Omit<SWSessionFinalizationData, 'events'>) => {
+      const sortedEvents = [...events].sort(
+        (a, b) => a.timestamp - b.timestamp,
+      );
+      onSubmit({ ...data, events: sortedEvents });
+      setIsFinalizingSession(false);
+    }),
+    [form, onSubmit, setIsFinalizingSession, events],
+  );
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     onCancel();
     setIsFinalizingSession(false);
-  };
+  }, [onCancel, setIsFinalizingSession]);
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      handleCancel();
-    }
-  };
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        handleCancel();
+      }
+    },
+    [handleCancel],
+  );
 
-  if (!isStopwatchEventsFinished()) {
+  const handleEventChange = useCallback(
+    (index: number, updatedEvent: StopwatchSessionEvent) => {
+      updateEvent(index, updatedEvent);
+      setEditingEventIndex(null);
+    },
+    [updateEvent],
+  );
+
+  if (!isRefiningPhase()) {
     return null;
   }
 
@@ -79,7 +107,7 @@ export const SWSessionFinalizationDF: React.FC<
       open={isFinalizingSession && isActiveTab}
       onOpenChange={handleOpenChange}
     >
-      <D.Content>
+      <D.Content className='max-w-4xl'>
         <D.Header>
           <D.Title>Finalize Session</D.Title>
           <D.Description>
@@ -117,21 +145,58 @@ export const SWSessionFinalizationDF: React.FC<
               </F.Item>
             )}
           />
-          <div className='mt-4'>
-            <h3 className='text-lg font-semibold'>Session Events</h3>
-            <ul className='mt-2 space-y-2'>
-              {events.map((event, index) => (
-                <li key={index}>
-                  {event.type} - {new Date(event.timestamp).toLocaleString()}
-                </li>
-              ))}
-            </ul>
+          <div className='mt-6 flex justify-end space-x-4'>
+            <Button
+              type='button'
+              onClick={() => setActivePage('stats')}
+              variant={activePage === 'stats' ? 'secondary' : 'outline'}
+            >
+              Session Event Stats
+            </Button>
+            <Button
+              type='button'
+              onClick={() => setActivePage('events')}
+              variant={activePage === 'events' ? 'secondary' : 'outline'}
+            >
+              Adjust Session Events
+            </Button>
           </div>
+          {activePage === 'stats' && (
+            <div className='mt-6'>
+              <h3 className='text-lg font-semibold mb-2'>
+                Session Event Stats
+              </h3>
+              <D.Description className='mb-4'>
+                Overview of your session statistics. Review total time, work
+                time, breaks, and completed tasks.
+              </D.Description>
+              <SessionFinalizationStats />
+            </div>
+          )}
+          {activePage === 'events' && (
+            <div className='mt-6'>
+              <h3 className='text-lg font-semibold mb-2'>
+                Adjust Session Events
+              </h3>
+              <D.Description className='mb-4'>
+                Review and modify your session events. Adjust timestamps or
+                event types if needed.
+              </D.Description>
+              <AdjustableEvents
+                events={events}
+                onEventChange={handleEventChange}
+                editingEventIndex={editingEventIndex}
+                setEditingEventIndex={setEditingEventIndex}
+              />
+            </div>
+          )}
           <D.Footer className='mt-6'>
             <Button type='button' variant='outline' onClick={handleCancel}>
               Cancel
             </Button>
-            <Button type='submit'>Submit</Button>
+            <Button type='submit' disabled={editingEventIndex !== null}>
+              Submit
+            </Button>
           </D.Footer>
         </F.Root>
       </D.Content>

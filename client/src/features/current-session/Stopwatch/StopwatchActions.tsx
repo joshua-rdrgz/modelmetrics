@@ -11,13 +11,13 @@ export const StopwatchActions: React.FC = () => {
     markTaskCompletion,
     finishSession,
     setIsFinalizingSession,
-    isStopwatchEventsFinished,
+    isRefiningPhase,
     activeDialogTabId,
     dialogTabId,
     setActiveDialogTabId,
   } = useStopwatchContext();
 
-  if (isStopwatchEventsFinished()) {
+  if (isRefiningPhase()) {
     const handleOpenDialog = () => {
       if (activeDialogTabId === null) {
         setActiveDialogTabId(dialogTabId);

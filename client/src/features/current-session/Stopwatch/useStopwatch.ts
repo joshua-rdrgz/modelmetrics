@@ -9,7 +9,7 @@ export const useStopwatch = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (swStore.events.length === 0) return;
+    if (swStore.events.length === 0 || swStore.isRefiningPhase()) return;
 
     const lastEvent = swStore.events[swStore.events.length - 1];
     const timeFromEvents = calculateStopwatchTimeFromEvents(swStore.events);
