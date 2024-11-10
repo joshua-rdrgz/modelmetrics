@@ -10,7 +10,8 @@ module.exports = {
   prefix: '',
   theme: {
     fontFamily: {
-      heading: ['Alef', 'sans-serif'],
+      heading: ['Alegreya Sans', 'sans-serif'],
+      body: ['Alegreya Sans', 'serif'],
     },
     container: {
       center: true,
