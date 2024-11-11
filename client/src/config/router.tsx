@@ -1,6 +1,8 @@
 import { PrivateRoute } from '@/features/auth/PrivateRoute';
 import { DashboardLayout } from '@/features/dashboard/DashboardLayout';
 import { AppErrorPage } from '@/pages/AppErrorPage';
+import { CurrentSessionPage } from '@/pages/CurrentSessionPage';
+import { DashboardPage } from '@/pages/DashboardPage';
 import { FullErrorPage } from '@/pages/FullErrorPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { ResendVerificationPage } from '@/pages/ResendVerificationPage';
@@ -27,7 +29,7 @@ export enum ClientRoutes {
 export const routerConfig: RouteObject[] = [
   {
     index: true,
-    loader: () => redirect('/login'),
+    loader: () => redirect(ClientRoutes.DASHBOARD),
   },
   {
     path: ClientRoutes.SIGNUP,
@@ -65,11 +67,13 @@ export const routerConfig: RouteObject[] = [
         children: [
           {
             path: 'dashboard',
-            element: <div>dashboard, you made it!</div>,
+            element: <DashboardPage />,
+            errorElement: <AppErrorPage />,
           },
           {
             path: 'current-session',
-            element: <div>Current Session Page</div>,
+            element: <CurrentSessionPage />,
+            errorElement: <AppErrorPage />,
           },
           {
             path: 'my-sessions',

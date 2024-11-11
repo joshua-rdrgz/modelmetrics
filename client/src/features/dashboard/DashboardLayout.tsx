@@ -73,7 +73,7 @@ export const DashboardLayout = () => {
           </ul>
         </nav>
       </aside>
-      <main className='bg-secondary overflow-auto px-6 py-4'>
+      <main className='bg-secondary overflow-auto px-6 py-4 font-body'>
         <div className='max-w-5xl mx-auto flex flex-col gap-6'>
           <Outlet />
         </div>

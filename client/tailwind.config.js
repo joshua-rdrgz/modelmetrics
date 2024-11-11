@@ -10,7 +10,8 @@ module.exports = {
   prefix: '',
   theme: {
     fontFamily: {
-      heading: ['Alef', 'sans-serif'],
+      heading: ['Alegreya Sans', 'sans-serif'],
+      body: ['Alegreya Sans', 'serif'],
     },
     container: {
       center: true,
@@ -76,5 +77,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('tailwind-scrollbar')],
 };

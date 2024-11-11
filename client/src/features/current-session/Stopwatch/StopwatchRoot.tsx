@@ -1,0 +1,54 @@
+import {
+  SWSessionFinalizationData,
+  SWSessionFinalizationDF,
+} from '@/features/current-session/Stopwatch/SWSessionFinalizationDF';
+import { StopwatchContextProvider } from '@/features/current-session/Stopwatch/StopwatchContext';
+import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
+import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
+import { millisecondsToReadableTimer } from '@/utils/millisecondsToReadableTimer';
+import { useEffect } from 'react';
+
+export type FinalizationEventData = {
+  projectName: string;
+  hourlyRate: number;
+  events: StopwatchSessionEvent[];
+};
+
+type StopwatchRootProps = {
+  children: React.ReactNode;
+  onFinalizeSession?: (data: FinalizationEventData) => void;
+};
+
+export const StopwatchRoot: React.FC<StopwatchRootProps> = ({
+  children,
+  onFinalizeSession,
+}) => {
+  const stopwatchState = useStopwatch();
+  const readableTimer = millisecondsToReadableTimer(stopwatchState.elapsedTime);
+
+  useEffect(() => {
+    if (stopwatchState.finishEventTabId === stopwatchState.dialogTabId) {
+      stopwatchState.setActiveDialogTabId(stopwatchState.dialogTabId);
+      stopwatchState.setFinishEventTabId(null);
+    }
+  }, [stopwatchState.finishEventTabId, stopwatchState.dialogTabId]);
+
+  const handleFinalize = (data: SWSessionFinalizationData) => {
+    onFinalizeSession?.(data);
+    stopwatchState.resetSession();
+  };
+
+  const handleCancel = () => {
+    stopwatchState.setActiveDialogTabId(null);
+  };
+
+  return (
+    <StopwatchContextProvider context={{ ...stopwatchState, ...readableTimer }}>
+      <div className='flex flex-col items-center space-y-4'>{children}</div>
+      <SWSessionFinalizationDF
+        onSubmit={handleFinalize}
+        onCancel={handleCancel}
+      />
+    </StopwatchContextProvider>
+  );
+};
