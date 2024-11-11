@@ -3,14 +3,19 @@ import { FinalizationEventData } from '@/features/current-session/Stopwatch/Stop
 import _ from 'lodash';
 import { StateCreator, StoreApi } from 'zustand';
 
-type BroadcastType = 'events' | 'projectInfo' | 'reset' | 'activeDialogTabId';
+type BroadcastType =
+  | 'events'
+  | 'projectInfo'
+  | 'reset'
+  | 'activeDialogTabId'
+  | 'tabClosed';
 
 type BroadcastOptions = {
   broadcastChange?: boolean;
   broadcastType?: BroadcastType;
 };
 
-type BroadcastMessage = {
+export type BroadcastMessage = {
   type: BroadcastType;
   data: Partial<FinalizationEventData & { activeDialogTabId: string | null }>;
 };
@@ -119,6 +124,12 @@ export const createBroadcastMiddleware =
               activeDialogTabId: remoteData.activeDialogTabId,
             });
           }
+          break;
+        case 'tabClosed':
+          set({
+            ...localData,
+            activeDialogTabId: null,
+          });
           break;
       }
     };
