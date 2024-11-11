@@ -17,7 +17,12 @@ type BroadcastOptions = {
 
 export type BroadcastMessage = {
   type: BroadcastType;
-  data: Partial<FinalizationEventData & { activeDialogTabId: string | null }>;
+  data: Partial<
+    FinalizationEventData & {
+      activeDialogTabId: string | null;
+      phase: 'capture' | 'refine';
+    }
+  >;
 };
 
 export const createBroadcastMiddleware =
@@ -28,6 +33,7 @@ export const createBroadcastMiddleware =
       projectName: string;
       hourlyRate: number;
       activeDialogTabId: string | null;
+      phase: 'capture' | 'refine';
     },
   >(
     f: StateCreator<T>,
@@ -58,7 +64,8 @@ export const createBroadcastMiddleware =
       );
 
       if (options?.broadcastChange && options?.broadcastType) {
-        const { events, projectName, hourlyRate, activeDialogTabId } = get();
+        const { events, projectName, hourlyRate, activeDialogTabId, phase } =
+          get();
 
         // Create Broadcast Message
         const message: BroadcastMessage = {
@@ -70,6 +77,7 @@ export const createBroadcastMiddleware =
         switch (options.broadcastType) {
           case 'events':
             message.data.events = events;
+            message.data.phase = phase;
             break;
           case 'projectInfo':
             message.data.projectName = projectName;
@@ -94,7 +102,11 @@ export const createBroadcastMiddleware =
       switch (broadcastType) {
         case 'events':
           if (!_.isEqual(remoteData.events, localData.events)) {
-            set({ ...localData, events: remoteData.events });
+            set({
+              ...localData,
+              events: remoteData.events,
+              phase: remoteData.phase,
+            });
           }
           break;
         case 'projectInfo':
