@@ -6,6 +6,7 @@ import { Button } from '@/ui/button';
 import * as D from '@/ui/dialog';
 import * as F from '@/ui/form';
 import { Input } from '@/ui/input';
+import { validateEvents } from '@/utils/validateEvents';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -14,11 +15,21 @@ import * as z from 'zod';
 const stopwatchFinalizationFormSchema = z.object({
   projectName: z.string().min(1, 'Project name is required'),
   hourlyRate: z.number().min(0, 'Hourly rate must be 0 or greater'),
+  events: z
+    .array(
+      z.object({
+        type: z.enum(['start', 'break', 'resume', 'taskComplete', 'finish']),
+        timestamp: z.number(),
+      }),
+    )
+    .refine(validateEvents, {
+      message: 'Events are not in the correct order or format',
+    }),
 });
 
 export type SWSessionFinalizationData = z.infer<
   typeof stopwatchFinalizationFormSchema
-> & { events: StopwatchSessionEvent[] };
+>;
 
 interface SWSessionFinalizationDFProps {
   onSubmit: (data: SWSessionFinalizationData) => void;
@@ -47,11 +58,12 @@ export const SWSessionFinalizationDF: React.FC<
     null,
   );
 
-  const form = useForm<Omit<SWSessionFinalizationData, 'events'>>({
+  const form = useForm<SWSessionFinalizationData>({
     resolver: zodResolver(stopwatchFinalizationFormSchema),
     defaultValues: {
       projectName,
       hourlyRate,
+      events,
     },
   });
 
@@ -61,9 +73,10 @@ export const SWSessionFinalizationDF: React.FC<
       form.reset({
         projectName,
         hourlyRate,
+        events,
       });
     }
-  }, [isFinalizingSession, projectName, hourlyRate, form]);
+  }, [isFinalizingSession, projectName, hourlyRate, events, form]);
 
   const handleSubmit = useCallback(
     form.handleSubmit((data: Omit<SWSessionFinalizationData, 'events'>) => {
@@ -92,7 +105,15 @@ export const SWSessionFinalizationDF: React.FC<
 
   const handleEventChange = useCallback(
     (index: number, updatedEvent: StopwatchSessionEvent) => {
+      // Update React Hook Form
+      const eventsToValidate = [...events];
+      eventsToValidate[index] = updatedEvent;
+      form.setValue('events', eventsToValidate);
+
+      // Update Zustand Store
       updateEvent(index, updatedEvent);
+
+      // Reset editing event state
       setEditingEventIndex(null);
     },
     [updateEvent],
@@ -193,6 +214,13 @@ export const SWSessionFinalizationDF: React.FC<
                 Review and modify your session events. Adjust timestamps or
                 event types if needed.
               </D.Description>
+              {form.formState.errors.events ? (
+                <p className='text-destructive font-bold text-xl m-3'>
+                  {form.formState.errors.events.message}
+                </p>
+              ) : (
+                <></>
+              )}
               <AdjustableEvents
                 events={events}
                 onEventChange={handleEventChange}
