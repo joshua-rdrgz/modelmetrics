@@ -38,6 +38,8 @@ export const SWSessionFinalizationDF: React.FC<
     activeDialogTabId,
     dialogTabId,
     updateEvent,
+    setProjectName,
+    setHourlyRate,
   } = useStopwatch();
 
   const [activePage, setActivePage] = useState<'stats' | 'events'>('stats');
@@ -118,11 +120,17 @@ export const SWSessionFinalizationDF: React.FC<
           <F.Field
             control={form.control}
             name='projectName'
-            render={({ field }) => (
+            render={({ field: { onChange, ...field } }) => (
               <F.Item>
                 <F.Label>Project Name</F.Label>
                 <F.Control>
-                  <Input {...field} />
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      onChange(e);
+                      setProjectName(e.target.value);
+                    }}
+                  />
                 </F.Control>
                 <F.Message />
               </F.Item>
@@ -131,14 +139,17 @@ export const SWSessionFinalizationDF: React.FC<
           <F.Field
             control={form.control}
             name='hourlyRate'
-            render={({ field }) => (
+            render={({ field: { onChange, ...field } }) => (
               <F.Item>
                 <F.Label>Hourly Rate</F.Label>
                 <F.Control>
                   <Input
                     type='number'
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      onChange(parseFloat(e.target.value));
+                      setHourlyRate(parseFloat(e.target.value));
+                    }}
                   />
                 </F.Control>
                 <F.Message />

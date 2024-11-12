@@ -121,14 +121,21 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
               { broadcastChange: true, broadcastType: 'events' },
             ),
           updateEvent: (index: number, updatedEvent: StopwatchSessionEvent) =>
-            set((state) => {
-              const newEvents = [...state.events];
-              newEvents[index] = updatedEvent;
-              const sortedEvents = newEvents.sort(
-                (a, b) => a.timestamp - b.timestamp,
-              );
-              return { events: sortedEvents };
-            }),
+            set(
+              (state) => {
+                const newEvents = [...state.events];
+                newEvents[index] = updatedEvent;
+                const sortedEvents = newEvents.sort(
+                  (a, b) => a.timestamp - b.timestamp,
+                );
+                return { events: sortedEvents };
+              },
+              false,
+              // **TODO**: Fix TypeScript bug here, info: https://github.com/pmndrs/zustand/issues/710
+              // @ts-expect-error The original `set` function only expects 2 arguments,
+              // but the custom broadcast middleware extends it to 3
+              { broadcastChange: true, broadcastType: 'events' },
+            ),
           setIsStopwatchRunning: (isStopwatchRunning) =>
             set({ isStopwatchRunning }),
           setElapsedTime: (time) => set({ elapsedTime: time }),
