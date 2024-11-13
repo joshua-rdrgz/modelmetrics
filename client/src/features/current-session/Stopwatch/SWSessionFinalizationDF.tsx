@@ -59,6 +59,7 @@ export const SWSessionFinalizationDF: React.FC<
   );
 
   const form = useForm<SWSessionFinalizationData>({
+    mode: 'onChange',
     resolver: zodResolver(stopwatchFinalizationFormSchema),
     defaultValues: {
       projectName,
