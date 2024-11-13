@@ -10,12 +10,21 @@ interface AdjustableEventsProps {
   setEditingEventIndex: (index: number | null) => void;
 }
 
+const ITEM_HEIGHT = 125;
+const MAX_ITEMS_BEFORE_SCROLL = 2;
+const MAX_LIST_HEIGHT = 300;
+
 export const AdjustableEvents: React.FC<AdjustableEventsProps> = ({
   events,
   onEventChange,
   editingEventIndex,
   setEditingEventIndex,
 }) => {
+  const listHeight = Math.min(
+    Math.max(events.length, MAX_ITEMS_BEFORE_SCROLL) * ITEM_HEIGHT,
+    MAX_LIST_HEIGHT,
+  );
+
   const renderEventItem = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => (
       <EventItem
@@ -38,11 +47,11 @@ export const AdjustableEvents: React.FC<AdjustableEventsProps> = ({
   );
 
   return (
-    <div className='h-[400px] w-full border rounded-md overflow-hidden'>
+    <div className='w-full border rounded-md overflow-hidden'>
       <List
-        height={400}
+        height={listHeight}
         itemCount={events.length}
-        itemSize={150}
+        itemSize={ITEM_HEIGHT}
         width='100%'
         className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800'
       >
