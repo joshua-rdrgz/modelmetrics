@@ -14,7 +14,9 @@ import * as z from 'zod';
 
 const stopwatchFinalizationFormSchema = z.object({
   projectName: z.string().min(1, 'Project name is required'),
-  hourlyRate: z.number().min(0, 'Hourly rate must be 0 or greater'),
+  hourlyRate: z
+    .number({ message: 'Hourly rate is required' })
+    .min(0, 'Hourly rate must be 0 or greater'),
   events: z
     .array(
       z.object({
@@ -23,7 +25,7 @@ const stopwatchFinalizationFormSchema = z.object({
       }),
     )
     .refine(validateEvents, {
-      message: 'Events are not in the correct order or format',
+      message: '**Events are not in the correct order or format!**',
     }),
 });
 
@@ -131,7 +133,7 @@ export const SWSessionFinalizationDF: React.FC<
       open={isFinalizingSession && isActiveTab}
       onOpenChange={handleOpenChange}
     >
-      <D.Content className='max-w-4xl'>
+      <D.Content className='max-w-4xl max-h-lg'>
         <D.Header>
           <D.Title>Finalize Session</D.Title>
           <D.Description>
@@ -144,7 +146,10 @@ export const SWSessionFinalizationDF: React.FC<
             name='projectName'
             render={({ field: { onChange, ...field } }) => (
               <F.Item>
-                <F.Label>Project Name</F.Label>
+                <div className='flex justify-between'>
+                  <F.Label>Project Name</F.Label>
+                  <F.Message />
+                </div>
                 <F.Control>
                   <Input
                     {...field}
@@ -154,7 +159,6 @@ export const SWSessionFinalizationDF: React.FC<
                     }}
                   />
                 </F.Control>
-                <F.Message />
               </F.Item>
             )}
           />
@@ -163,7 +167,10 @@ export const SWSessionFinalizationDF: React.FC<
             name='hourlyRate'
             render={({ field: { onChange, ...field } }) => (
               <F.Item>
-                <F.Label>Hourly Rate</F.Label>
+                <div className='flex justify-between'>
+                  <F.Label>Hourly Rate</F.Label>
+                  <F.Message />
+                </div>
                 <F.Control>
                   <Input
                     type='number'
@@ -174,7 +181,6 @@ export const SWSessionFinalizationDF: React.FC<
                     }}
                   />
                 </F.Control>
-                <F.Message />
               </F.Item>
             )}
           />
@@ -194,6 +200,15 @@ export const SWSessionFinalizationDF: React.FC<
               Adjust Session Events
             </Button>
           </div>
+          {/* EVENTS ERROR */}
+          {form.formState.errors.events ? (
+            <p className='text-destructive font-bold text-md m-3 text-center'>
+              {form.formState.errors.events.message}
+            </p>
+          ) : (
+            <></>
+          )}
+          {/* STATS PAGE */}
           {activePage === 'stats' && (
             <div className='mt-6'>
               <h3 className='text-lg font-semibold mb-2'>
@@ -206,6 +221,7 @@ export const SWSessionFinalizationDF: React.FC<
               <SessionFinalizationStats />
             </div>
           )}
+          {/* EVENTS PAGE */}
           {activePage === 'events' && (
             <div className='mt-6'>
               <h3 className='text-lg font-semibold mb-2'>
@@ -215,13 +231,6 @@ export const SWSessionFinalizationDF: React.FC<
                 Review and modify your session events. Adjust timestamps or
                 event types if needed.
               </D.Description>
-              {form.formState.errors.events ? (
-                <p className='text-destructive font-bold text-xl m-3'>
-                  {form.formState.errors.events.message}
-                </p>
-              ) : (
-                <></>
-              )}
               <AdjustableEvents
                 events={events}
                 onEventChange={handleEventChange}
