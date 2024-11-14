@@ -7,7 +7,7 @@ services:
     env_file:
       - .env
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     volumes:
       - db-dev-data:/var/lib/mysql
     ports:
@@ -21,7 +21,7 @@ services:
     env_file:
       - .env
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     volumes:
       - db-prod-data:/var/lib/mysql
     profiles:
@@ -45,7 +45,7 @@ services:
       - 35729:35729
       - 5005:5005
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     volumes:
       - type: bind
         source: ./api
@@ -69,7 +69,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     profiles:
       - prod
 
@@ -85,7 +85,7 @@ services:
     ports:
       - '5173:5173'
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     volumes:
       - type: bind
         source: ./client
@@ -107,13 +107,13 @@ services:
     ports:
       - '80:80'
     networks:
-      - dataannotation-logs-app
+      - modelmetrics
     profiles:
       - prod
 
 networks:
-  dataannotation-logs-app:
-    name: dataannotation-logs-app
+  modelmetrics:
+    name: modelmetrics
 
 volumes:
   db-dev-data:
