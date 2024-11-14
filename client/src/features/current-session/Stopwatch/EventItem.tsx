@@ -112,8 +112,8 @@ export const EventItem: React.FC<EventItemProps> = ({
           <div className='w-full flex space-x-2'>
             <Button
               type='button'
-              onClick={handleCancel}
               variant='outline'
+              onClick={handleCancel}
               wrapperClassName='w-1/2'
               className='w-full'
             >
@@ -122,7 +122,6 @@ export const EventItem: React.FC<EventItemProps> = ({
             <Button
               type='button'
               onClick={handleSave}
-              variant='secondary'
               wrapperClassName='w-1/2'
               className='w-full'
             >
@@ -132,8 +131,8 @@ export const EventItem: React.FC<EventItemProps> = ({
         ) : (
           <Button
             type='button'
-            onClick={onEditToggle}
             variant='outline'
+            onClick={onEditToggle}
             wrapperClassName='w-full'
             className='w-full'
             disabled={isEditDisabled}

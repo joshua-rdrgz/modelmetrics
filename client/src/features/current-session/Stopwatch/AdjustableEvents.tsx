@@ -47,7 +47,7 @@ export const AdjustableEvents: React.FC<AdjustableEventsProps> = ({
   );
 
   return (
-    <div className='w-full border rounded-md overflow-hidden'>
+    <div className='w-full border rounded-md overflow-hidden bg-muted/50'>
       <List
         height={listHeight}
         itemCount={events.length}

@@ -3,10 +3,12 @@ import { SessionFinalizationStats } from '@/features/current-session/Stopwatch/S
 import { useStopwatch } from '@/features/current-session/Stopwatch/useStopwatch';
 import { StopwatchSessionEvent } from '@/features/current-session/stopwatch-store/stopwatchSessionStore';
 import { Button } from '@/ui/button';
+import * as C from '@/ui/card';
 import * as D from '@/ui/dialog';
 import * as F from '@/ui/form';
 import { Input } from '@/ui/input';
 import * as SA from '@/ui/scroll-area';
+import * as T from '@/ui/tabs';
 import { validateEvents } from '@/utils/validateEvents';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -56,7 +58,6 @@ export const SWSessionFinalizationDF: React.FC<
     setHourlyRate,
   } = useStopwatch();
 
-  const [activePage, setActivePage] = useState<'stats' | 'events'>('stats');
   const [editingEventIndex, setEditingEventIndex] = useState<number | null>(
     null,
   );
@@ -150,7 +151,7 @@ export const SWSessionFinalizationDF: React.FC<
           </D.Description>
         </D.Header>
         <F.Root formMethods={form} onSubmit={handleSubmit}>
-          <SA.Root className='h-[calc(75vh-200px)] pr-4'>
+          <SA.Root className='h-[calc(75vh-200px)] pr-4 border rounded-lg p-4'>
             <F.Field
               control={form.control}
               name='projectName'
@@ -202,68 +203,65 @@ export const SWSessionFinalizationDF: React.FC<
                 </F.Item>
               )}
             />
-            <div className='mt-6 flex justify-end space-x-4'>
-              <Button
-                type='button'
-                onClick={() => setActivePage('stats')}
-                variant={activePage === 'stats' ? 'secondary' : 'outline'}
-              >
-                Session Event Stats
-              </Button>
-              <Button
-                type='button'
-                onClick={() => setActivePage('events')}
-                variant={activePage === 'events' ? 'secondary' : 'outline'}
-              >
-                Adjust Session Events
-              </Button>
+            <div className='mt-6'>
+              <T.Root defaultValue='stats' className='w-full'>
+                <div className='flex justify-end mb-4'>
+                  <T.List>
+                    <T.Trigger value='stats'>Session Event Stats</T.Trigger>
+                    <T.Trigger value='events'>Adjust Session Events</T.Trigger>
+                  </T.List>
+                </div>
+                {/* Events Error Alert */}
+                {form.formState.errors.events && (
+                  <div className='w-full bg-destructive text-destructive-foreground p-4 rounded-lg mb-4'>
+                    <p className='font-bold text-center'>
+                      {form.formState.errors.events.message}
+                    </p>
+                  </div>
+                )}
+                <T.Content value='stats' className='w-full'>
+                  <C.Root>
+                    <C.Header>
+                      <C.Title>Session Event Stats</C.Title>
+                      <C.Description>
+                        Overview of your session statistics. Review total time,
+                        work time, breaks, and completed tasks.
+                      </C.Description>
+                    </C.Header>
+                    <C.Content>
+                      <SessionFinalizationStats />
+                    </C.Content>
+                  </C.Root>
+                </T.Content>
+                <T.Content value='events' className='w-full'>
+                  <C.Root>
+                    <C.Header>
+                      <C.Title>Adjust Session Events</C.Title>
+                      <C.Description>
+                        Review and modify your session events. Adjust timestamps
+                        or event types if needed.
+                      </C.Description>
+                    </C.Header>
+                    <C.Content>
+                      <AdjustableEvents
+                        events={events}
+                        onEventChange={handleEventChange}
+                        editingEventIndex={editingEventIndex}
+                        setEditingEventIndex={setEditingEventIndex}
+                      />
+                    </C.Content>
+                  </C.Root>
+                </T.Content>
+              </T.Root>
             </div>
-            {/* EVENTS ERROR */}
-            {form.formState.errors.events ? (
-              <p className='text-destructive font-bold text-md m-3 text-center'>
-                {form.formState.errors.events.message}
-              </p>
-            ) : (
-              <></>
-            )}
-            {/* STATS PAGE */}
-            {activePage === 'stats' && (
-              <div className='mt-6'>
-                <h3 className='text-lg font-semibold mb-2'>
-                  Session Event Stats
-                </h3>
-                <D.Description className='mb-4'>
-                  Overview of your session statistics. Review total time, work
-                  time, breaks, and completed tasks.
-                </D.Description>
-                <SessionFinalizationStats />
-              </div>
-            )}
-            {/* EVENTS PAGE */}
-            {activePage === 'events' && (
-              <div className='mt-6'>
-                <h3 className='text-lg font-semibold mb-2'>
-                  Adjust Session Events
-                </h3>
-                <D.Description className='mb-4'>
-                  Review and modify your session events. Adjust timestamps or
-                  event types if needed.
-                </D.Description>
-                <AdjustableEvents
-                  events={events}
-                  onEventChange={handleEventChange}
-                  editingEventIndex={editingEventIndex}
-                  setEditingEventIndex={setEditingEventIndex}
-                />
-              </div>
-            )}
           </SA.Root>
           <D.Footer className='mt-6'>
-            <Button type='button' variant='outline' onClick={handleCancel}>
+            <Button type='button' variant='ghost' onClick={handleCancel}>
               Cancel
             </Button>
             <Button
               type='submit'
+              variant='default'
               disabled={!form.formState.isValid || editingEventIndex !== null}
             >
               Submit
