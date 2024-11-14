@@ -48,6 +48,10 @@ interface StopwatchSessionStateUpdaters {
    * @returns {boolean} True if the stopwatch events are finished, false otherwise.
    */
   isRefiningPhase: () => boolean;
+  /**
+   * Determines if a task has been completed in a session
+   */
+  hasFinishedTask: () => boolean;
 }
 
 type StopwatchSessionStore = StopwatchSessionState &
@@ -186,6 +190,11 @@ export const useStopwatchSessionStore = create<StopwatchSessionStore>()(
            * @returns {boolean} True if the stopwatch events are finished, false otherwise.
            */
           isRefiningPhase: (): boolean => get().phase === 'refine',
+          /**
+           * Determines if a task has been completed in a session
+           */
+          hasFinishedTask: (): boolean =>
+            get().events.some((event) => event.type === 'taskComplete'),
         })) as StateCreator<StopwatchSessionStore, [['zustand/immer', never]]>,
       ),
       {

@@ -15,6 +15,7 @@ export const StopwatchActions: React.FC = () => {
     activeDialogTabId,
     dialogTabId,
     setActiveDialogTabId,
+    hasFinishedTask,
   } = useStopwatchContext();
 
   if (isRefiningPhase()) {
@@ -51,7 +52,7 @@ export const StopwatchActions: React.FC = () => {
       {!isStopwatchRunning && elapsedTime > 0 && (
         <Button onClick={resumeSession}>✅ Resume Session</Button>
       )}
-      {isStopwatchRunning && elapsedTime > 0 && (
+      {hasFinishedTask() && isStopwatchRunning && elapsedTime > 0 && (
         <Button onClick={finishSession}>🎉 Finish</Button>
       )}
     </div>
