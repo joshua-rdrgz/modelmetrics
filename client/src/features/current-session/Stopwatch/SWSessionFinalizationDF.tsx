@@ -229,7 +229,10 @@ export const SWSessionFinalizationDF: React.FC<
                       </C.Description>
                     </C.Header>
                     <C.Content>
-                      <SessionFinalizationStats />
+                      <SessionFinalizationStats
+                        events={events}
+                        isEventsValid={!form.formState.errors.events}
+                      />
                     </C.Content>
                   </C.Root>
                 </T.Content>
