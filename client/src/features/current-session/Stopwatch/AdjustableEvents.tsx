@@ -53,7 +53,7 @@ export const AdjustableEvents: React.FC<AdjustableEventsProps> = ({
         itemCount={events.length}
         itemSize={ITEM_HEIGHT}
         width='100%'
-        className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800'
+        className='scrollbar-thin dark:scrollbar-thumb-background dark:scrollbar-track-muted'
       >
         {renderEventItem}
       </List>
