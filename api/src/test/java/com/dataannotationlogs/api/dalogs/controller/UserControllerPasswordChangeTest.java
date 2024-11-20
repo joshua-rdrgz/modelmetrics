@@ -10,14 +10,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dataannotationlogs.api.dalogs.base.AuthTestBase;
-import com.dataannotationlogs.api.dalogs.dto.password.PasswordChangeRequest;
-import com.dataannotationlogs.api.dalogs.dto.password.PasswordResetVerifyRequest;
-import com.dataannotationlogs.api.dalogs.dto.response.EntityChangeResponse;
-import com.dataannotationlogs.api.dalogs.entity.PasswordResetOtp;
-import com.dataannotationlogs.api.dalogs.entity.User;
-import com.dataannotationlogs.api.dalogs.repository.passwordresetotp.PasswordResetOtpRepository;
-import com.dataannotationlogs.api.dalogs.repository.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.dto.password.PasswordChangeRequest;
+import com.modelmetrics.api.modelmetrics.dto.password.PasswordResetVerifyRequest;
+import com.modelmetrics.api.modelmetrics.dto.response.EntityChangeResponse;
+import com.modelmetrics.api.modelmetrics.entity.PasswordResetOtp;
+import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.repository.passwordresetotp.PasswordResetOtpRepository;
+import com.modelmetrics.api.modelmetrics.repository.user.UserRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

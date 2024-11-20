@@ -8,7 +8,7 @@
 		<version>3.2.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.dataannotationlogs.api</groupId>
+	<groupId>com.modelmetrics.api</groupId>
 	<artifactId>dalogs</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>dalogs</name>

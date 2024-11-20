@@ -7,14 +7,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dataannotationlogs.api.dalogs.base.EmailTestBase;
-import com.dataannotationlogs.api.dalogs.dto.auth.login.LoginAuthRequest;
-import com.dataannotationlogs.api.dalogs.dto.auth.register.RegisterAuthRequest;
-import com.dataannotationlogs.api.dalogs.entity.User;
-import com.dataannotationlogs.api.dalogs.entity.VerificationToken;
-import com.dataannotationlogs.api.dalogs.repository.user.UserRepository;
-import com.dataannotationlogs.api.dalogs.repository.verificationtoken.VerificationTokenRepository;
-import com.dataannotationlogs.api.dalogs.service.auth.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.dto.auth.login.LoginAuthRequest;
+import com.modelmetrics.api.modelmetrics.dto.auth.register.RegisterAuthRequest;
+import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.entity.VerificationToken;
+import com.modelmetrics.api.modelmetrics.repository.user.UserRepository;
+import com.modelmetrics.api.modelmetrics.repository.verificationtoken.VerificationTokenRepository;
+import com.modelmetrics.api.modelmetrics.service.auth.JwtService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;

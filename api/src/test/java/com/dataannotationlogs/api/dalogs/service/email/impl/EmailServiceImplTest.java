@@ -3,9 +3,9 @@ package com.dataannotationlogs.api.dalogs.service.email.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dataannotationlogs.api.dalogs.base.EmailTestBase;
-import com.dataannotationlogs.api.dalogs.entity.User;
-import com.dataannotationlogs.api.dalogs.service.email.EmailService;
 import com.icegreen.greenmail.util.GreenMailUtil;
+import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.service.email.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import java.util.UUID;
 import org.jsoup.Jsoup;

@@ -7,13 +7,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dataannotationlogs.api.dalogs.base.AuthTestBase;
-import com.dataannotationlogs.api.dalogs.dto.email.EmailResetRequest;
-import com.dataannotationlogs.api.dalogs.dto.email.EmailResetVerificationRequest;
-import com.dataannotationlogs.api.dalogs.entity.EmailResetToken;
-import com.dataannotationlogs.api.dalogs.entity.User;
-import com.dataannotationlogs.api.dalogs.repository.emailresettoken.EmailResetTokenRepository;
-import com.dataannotationlogs.api.dalogs.repository.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.dto.email.EmailResetRequest;
+import com.modelmetrics.api.modelmetrics.dto.email.EmailResetVerificationRequest;
+import com.modelmetrics.api.modelmetrics.entity.EmailResetToken;
+import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.repository.emailresettoken.EmailResetTokenRepository;
+import com.modelmetrics.api.modelmetrics.repository.user.UserRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

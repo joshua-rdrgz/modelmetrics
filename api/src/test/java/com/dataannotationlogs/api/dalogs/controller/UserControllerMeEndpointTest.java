@@ -8,10 +8,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dataannotationlogs.api.dalogs.base.AuthTestBase;
-import com.dataannotationlogs.api.dalogs.dto.user.UserDto;
-import com.dataannotationlogs.api.dalogs.entity.EmailResetToken;
-import com.dataannotationlogs.api.dalogs.repository.emailresettoken.EmailResetTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.dto.user.UserDto;
+import com.modelmetrics.api.modelmetrics.entity.EmailResetToken;
+import com.modelmetrics.api.modelmetrics.repository.emailresettoken.EmailResetTokenRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,8 @@
 package com.dataannotationlogs.api.dalogs.base;
 
-import com.dataannotationlogs.api.dalogs.entity.User;
-import com.dataannotationlogs.api.dalogs.repository.user.UserRepository;
-import com.dataannotationlogs.api.dalogs.service.auth.JwtService;
+import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.repository.user.UserRepository;
+import com.modelmetrics.api.modelmetrics.service.auth.JwtService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
