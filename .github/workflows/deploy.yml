@@ -10,39 +10,49 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Login to Heroku Container Registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
 
-      - name: Build and Deploy Client
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_CLIENT_APP_NAME: 'modelmetrics-client'
+      - name: Push Client to Heroku Container Registry
         run: |
           cd client
-          heroku container:push web -a $HEROKU_CLIENT_APP_NAME
-          heroku container:release web -a $HEROKU_CLIENT_APP_NAME
+          heroku container:push web -a modelmetrics-client
+
+      - name: Release Client on Heroku
+        run: |
+          heroku container:release web -a modelmetrics-client
 
   deploy-api:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Login to Heroku Container Registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
 
-      - name: Build and Deploy API
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_API_APP_NAME: 'modelmetrics-api'
+      - name: Push API to Heroku Container Registry
         run: |
           cd api
-          heroku container:push web -a $HEROKU_API_APP_NAME
-          heroku container:release web -a $HEROKU_API_APP_NAME
+          heroku container:push web -a modelmetrics-api
+
+      - name: Release API on Heroku
+        run: |
+          heroku container:release web -a modelmetrics-api
