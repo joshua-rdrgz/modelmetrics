@@ -1,0 +1,48 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-client:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: Build and Deploy Client
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_CLIENT_APP_NAME: 'modelmetrics-client'
+        run: |
+          cd client
+          heroku container:push web -a $HEROKU_CLIENT_APP_NAME
+          heroku container:release web -a $HEROKU_CLIENT_APP_NAME
+
+  deploy-api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: Build and Deploy API
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_API_APP_NAME: 'modelmetrics-api'
+        run: |
+          cd api
+          heroku container:push web -a $HEROKU_API_APP_NAME
+          heroku container:release web -a $HEROKU_API_APP_NAME
