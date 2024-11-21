@@ -7,52 +7,40 @@ on:
 jobs:
   deploy-client:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
+      - uses: actions/checkout@v4
 
       - name: Login to Heroku Container Registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
 
-      - name: Push Client to Heroku Container Registry
-        run: |
-          cd client
-          heroku container:push web -a modelmetrics-client
+      - name: Change Target Directory
+        run: cd client
+
+      - name: Build and Push Client to Heroku Container Registry
+        run: heroku container:push web -a modelmetrics-client
 
       - name: Release Client on Heroku
-        run: |
-          heroku container:release web -a modelmetrics-client
+        run: heroku container:release web -a modelmetrics-client
 
   deploy-api:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
+      - uses: actions/checkout@v4
 
       - name: Login to Heroku Container Registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
 
-      - name: Push API to Heroku Container Registry
-        run: |
-          cd api
-          heroku container:push web -a modelmetrics-api
+      - name: Change Target Directory
+        run: cd api
+
+      - name: Build and Push API to Heroku Container Registry
+        run: heroku container:push web -a modelmetrics-api
 
       - name: Release API on Heroku
-        run: |
-          heroku container:release web -a modelmetrics-api
+        run: heroku container:release web -a modelmetrics-api
