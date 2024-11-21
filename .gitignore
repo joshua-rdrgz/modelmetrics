@@ -35,5 +35,7 @@ build/
 ### CUSTOM ###
 .env
 sql
+.DS_Store
+
 # FOR SAFETY
 /client/cypress/downloads/

@@ -15,18 +15,6 @@ services:
     profiles:
       - dev
 
-  db-prod:
-    container_name: db-prod
-    image: mysql:8.0
-    env_file:
-      - .env
-    networks:
-      - modelmetrics
-    volumes:
-      - db-prod-data:/var/lib/mysql
-    profiles:
-      - prod
-
   api-dev:
     container_name: api-dev
     build:
@@ -53,26 +41,6 @@ services:
     profiles:
       - dev
 
-  api-prod:
-    container_name: api-prod
-    build:
-      context: ./api
-      dockerfile: Dockerfile.prod
-    depends_on:
-      - db-prod
-    env_file:
-      - .env
-    environment:
-      DATASOURCE_URL: jdbc:mysql://db-prod:3306/${MYSQL_DATABASE}
-      DATASOURCE_USER: ${MYSQL_USER}
-      DATASOURCE_PASS: ${MYSQL_PASSWORD}
-    ports:
-      - 8080:8080
-    networks:
-      - modelmetrics
-    profiles:
-      - prod
-
   client-dev:
     container_name: client-dev
     build:
@@ -95,26 +63,9 @@ services:
     profiles:
       - dev
 
-  client-prod:
-    container_name: client-prod
-    build:
-      context: ./client
-      dockerfile: Dockerfile.prod
-    environment:
-      - VITE_API_BASE_URL=http://api-prod:8080/api
-    depends_on:
-      - api-prod
-    ports:
-      - '80:80'
-    networks:
-      - modelmetrics
-    profiles:
-      - prod
-
 networks:
   modelmetrics:
     name: modelmetrics
 
 volumes:
   db-dev-data:
-  db-prod-data:
