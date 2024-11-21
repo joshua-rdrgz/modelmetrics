@@ -10,37 +10,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Login to Heroku Container Registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-
-      - name: Change Target Directory
-        run: cd client
-
-      - name: Build and Push Client to Heroku Container Registry
-        run: heroku container:push web -a modelmetrics-client
-
-      - name: Release Client on Heroku
-        run: heroku container:release web -a modelmetrics-client
+      - uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_CLIENT_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
 
   deploy-api:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Login to Heroku Container Registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-
-      - name: Change Target Directory
-        run: cd api
-
-      - name: Build and Push API to Heroku Container Registry
-        run: heroku container:push web -a modelmetrics-api
-
-      - name: Release API on Heroku
-        run: heroku container:release web -a modelmetrics-api
+      - uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_API_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
