@@ -11,15 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Switch to Client Directory
-        run: cd ./client
-
-      - uses: akhileshns/heroku-deploy@v3.13.15
+      - name: Login, Build, Push and Release Client to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_CLIENT_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           usedocker: true
+          appdir: 'client'
 
   deploy-api:
     runs-on: ubuntu-latest
@@ -27,12 +26,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Switch to API Directory
-        run: cd ./api
-
-      - uses: akhileshns/heroku-deploy@v3.13.15
+      - name: Login, Build, Push and Release API to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_API_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           usedocker: true
+          appdir: 'api'
