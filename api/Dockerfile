@@ -4,11 +4,11 @@ WORKDIR /app
 
 COPY pom.xml .
 
-RUN mvn dependency:go-offline
+RUN mvn -q dependency:go-offline
 
 COPY src ./src
 
-RUN mvn package -DskipTests
+RUN mvn -q package -DskipTests
 
 
 FROM openjdk:17-jdk-slim
@@ -17,6 +17,6 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8080
+EXPOSE $PORT
 
 CMD ["java", "-jar", "app.jar"]
