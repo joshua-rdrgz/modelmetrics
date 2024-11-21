@@ -12,7 +12,7 @@ const axios = axiosModule.create({
 
 /**
  * Request function responsible for making requests to
- * DataAnnotation Logging App API.
+ * ModelMetrics API.
  * @param config Standard Axios Configuration
  * @returns data from response object, i.e. `response.data`
  */
