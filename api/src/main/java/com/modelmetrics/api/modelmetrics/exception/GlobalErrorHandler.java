@@ -3,11 +3,16 @@ package com.modelmetrics.api.modelmetrics.exception;
 import com.modelmetrics.api.modelmetrics.dto.base.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -15,6 +20,57 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 /** GlobalErrorHandler. */
 @RestControllerAdvice
 public class GlobalErrorHandler {
+
+  /**
+   * Handles validation exceptions thrown by @Valid annotations.
+   *
+   * @param ex the MethodArgumentNotValidException thrown when validation fails
+   * @return ResponseEntity containing ErrorResponse with validation error details
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleValidationExceptions(
+      MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult()
+        .getAllErrors()
+        .forEach(
+            (error) -> {
+              String fieldName = ((FieldError) error).getField();
+              String errorMessage = error.getDefaultMessage();
+              errors.put(fieldName, errorMessage);
+            });
+
+    String errorMessage = "Validation failed. Please check the errors field for details.";
+    System.out.println("🚫 VALIDATION ERROR: " + errors);
+
+    ErrorResponse error = new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), errors);
+    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+  }
+
+  /**
+   * Handles exceptions thrown when the request body contains invalid JSON.
+   *
+   * @param ex the HttpMessageNotReadableException thrown when JSON parsing fails
+   * @return ResponseEntity containing ErrorResponse with details about the JSON parsing error
+   */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidJson(HttpMessageNotReadableException ex) {
+
+    Map<String, String> errors = new HashMap<>();
+    Throwable mostSpecificCause = ex.getMostSpecificCause();
+    errors.put("exception", ex.getClass().getSimpleName());
+    errors.put(
+        "details", mostSpecificCause != null ? mostSpecificCause.getMessage() : ex.getMessage());
+
+    System.out.println("❌ INVALID JSON: " + errors.get("details"));
+
+    String userFriendlyMessage =
+        "The request contains invalid JSON. Please check your request body.";
+
+    ErrorResponse error =
+        new ErrorResponse(userFriendlyMessage, HttpStatus.BAD_REQUEST.value(), errors);
+    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+  }
 
   /**
    * handleIllegalArguments.
