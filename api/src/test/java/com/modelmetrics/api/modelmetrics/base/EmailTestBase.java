@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.base;
+package com.modelmetrics.api.modelmetrics.base;
 
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;

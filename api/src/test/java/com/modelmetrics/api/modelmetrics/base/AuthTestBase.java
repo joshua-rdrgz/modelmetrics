@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.base;
+package com.modelmetrics.api.modelmetrics.base;
 
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.repository.user.UserRepository;

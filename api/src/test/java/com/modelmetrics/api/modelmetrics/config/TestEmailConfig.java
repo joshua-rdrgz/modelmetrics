@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.config;
+package com.modelmetrics.api.modelmetrics.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

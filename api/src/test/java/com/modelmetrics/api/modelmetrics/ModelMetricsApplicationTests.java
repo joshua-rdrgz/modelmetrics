@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs;
+package com.modelmetrics.api.modelmetrics;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

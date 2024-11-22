@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.controller;
+package com.modelmetrics.api.modelmetrics.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dataannotationlogs.api.dalogs.base.EmailTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.base.EmailTestBase;
 import com.modelmetrics.api.modelmetrics.dto.auth.login.LoginAuthRequest;
 import com.modelmetrics.api.modelmetrics.dto.auth.register.RegisterAuthRequest;
 import com.modelmetrics.api.modelmetrics.entity.User;

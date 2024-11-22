@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.controller;
+package com.modelmetrics.api.modelmetrics.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dataannotationlogs.api.dalogs.base.AuthTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.base.AuthTestBase;
 import com.modelmetrics.api.modelmetrics.dto.user.UserDto;
 import com.modelmetrics.api.modelmetrics.entity.EmailResetToken;
 import com.modelmetrics.api.modelmetrics.repository.emailresettoken.EmailResetTokenRepository;

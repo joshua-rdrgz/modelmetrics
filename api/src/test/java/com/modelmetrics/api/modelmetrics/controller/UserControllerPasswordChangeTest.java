@@ -1,4 +1,4 @@
-package com.dataannotationlogs.api.dalogs.controller;
+package com.modelmetrics.api.modelmetrics.controller;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.dataannotationlogs.api.dalogs.base.AuthTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modelmetrics.api.modelmetrics.base.AuthTestBase;
 import com.modelmetrics.api.modelmetrics.dto.password.PasswordChangeRequest;
 import com.modelmetrics.api.modelmetrics.dto.password.PasswordResetVerifyRequest;
 import com.modelmetrics.api.modelmetrics.dto.response.EntityChangeResponse;
