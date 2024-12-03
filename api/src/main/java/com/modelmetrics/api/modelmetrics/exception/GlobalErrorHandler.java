@@ -3,6 +3,7 @@ package com.modelmetrics.api.modelmetrics.exception;
 import com.modelmetrics.api.modelmetrics.dto.base.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,6 +21,19 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 /** GlobalErrorHandler. */
 @RestControllerAdvice
 public class GlobalErrorHandler {
+
+  @ExceptionHandler(UnauthorizedSessionAccessException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthorizedSessionAccess(
+      UnauthorizedSessionAccessException ex) {
+    ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN.value());
+    return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+  }
+
+  @ExceptionHandler(EntityNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
+    ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND.value());
+    return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+  }
 
   /**
    * Handles validation exceptions thrown by @Valid annotations.
