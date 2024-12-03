@@ -12,6 +12,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -61,12 +62,21 @@ public class User {
   @Column(name = "last_password_change")
   private LocalDateTime lastPasswordChange;
 
+  @Column(name = "tax_allocation_percentage", nullable = false)
+  private Integer taxAllocationPercentage;
+
+  @Column(name = "currency", nullable = false)
+  private Currency currency;
+
   /** PrePersist. */
   @PrePersist
   public void prePersist() {
     LocalDateTime currentTime = LocalDateTime.now();
     createdAt = currentTime;
     lastUpdatedAt = currentTime;
+
+    taxAllocationPercentage = 24;
+    currency = Currency.getInstance("us");
   }
 
   /** PreUpdate. */

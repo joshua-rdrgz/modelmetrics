@@ -51,14 +51,17 @@ public class UserServiceImpl implements UserService {
     }
 
     User managedUser = userRepository.findFirstById(user.getId());
-    EmailResetToken emailResetToken = emailResetTokenRepository.findByUserId(managedUser.getId());
-    PasswordResetOtp passwordResetOtp =
-        passwordResetOtpRepository.findByUserId(managedUser.getId());
 
     managedUser.setFirstName(userDto.getFirstName());
     managedUser.setLastName(userDto.getLastName());
+    managedUser.setCurrency(userDto.getCurrency());
+    managedUser.setTaxAllocationPercentage(userDto.getTaxAllocationPercentage());
 
     User updatedUser = userRepository.save(managedUser);
+
+    EmailResetToken emailResetToken = emailResetTokenRepository.findByUserId(managedUser.getId());
+    PasswordResetOtp passwordResetOtp =
+        passwordResetOtpRepository.findByUserId(managedUser.getId());
 
     return UserDto.fromUser(updatedUser, emailResetToken, passwordResetOtp);
   }

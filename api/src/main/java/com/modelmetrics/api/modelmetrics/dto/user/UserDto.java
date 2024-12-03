@@ -5,6 +5,7 @@ import com.modelmetrics.api.modelmetrics.entity.PasswordResetOtp;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.util.TimeUtil;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class UserDto {
   private String pendingEmail;
   private PasswordResetStatus passwordResetStatus;
   private Optional<Long> cooldownMinsRemaining;
+  private Currency currency;
+  private Integer taxAllocationPercentage;
 
   /** Creates a UserDto from User, EmailResetToken, and PasswordResetOtp. */
   public static UserDto fromUser(
@@ -68,6 +71,8 @@ public class UserDto {
         .pendingEmail(emailResetToken != null ? emailResetToken.getNewEmail() : null)
         .passwordResetStatus(status)
         .cooldownMinsRemaining(cooldownMinsRemaining)
+        .taxAllocationPercentage(user.getTaxAllocationPercentage())
+        .currency(user.getCurrency())
         .build();
   }
 }
