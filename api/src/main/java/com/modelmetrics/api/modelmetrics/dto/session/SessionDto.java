@@ -1,5 +1,6 @@
 package com.modelmetrics.api.modelmetrics.dto.session;
 
+import com.modelmetrics.api.modelmetrics.annotations.valideventorder.ValidEventOrder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -29,6 +30,7 @@ public class SessionDto {
 
   @Valid
   @NotEmpty(message = "Events list must not be empty")
+  @ValidEventOrder(message = "Events must be in the correct chronological order")
   private List<EventDto> events;
 
   // Calculated properties
