@@ -1,7 +1,7 @@
 package com.modelmetrics.api.modelmetrics.repository.session;
 
-import com.modelmetrics.api.modelmetrics.entity.Session;
 import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

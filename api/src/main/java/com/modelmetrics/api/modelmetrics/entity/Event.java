@@ -1,5 +1,6 @@
 package com.modelmetrics.api.modelmetrics.entity;
 
+import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
