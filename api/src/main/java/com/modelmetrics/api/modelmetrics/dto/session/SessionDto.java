@@ -1,6 +1,7 @@
 package com.modelmetrics.api.modelmetrics.dto.session;
 
 import com.modelmetrics.api.modelmetrics.annotations.valideventorder.ValidEventOrder;
+import com.modelmetrics.api.modelmetrics.util.Money;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -36,7 +37,7 @@ public class SessionDto {
   // Calculated properties
   private Integer tasksCompleted;
   private BigDecimal totalMinutesWorked;
-  private BigDecimal grossEarnings;
-  private BigDecimal taxAllocation;
-  private BigDecimal netEarnings;
+  private Money grossEarnings;
+  private Money taxAllocation;
+  private Money netEarnings;
 }

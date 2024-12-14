@@ -3,6 +3,7 @@ package com.modelmetrics.api.modelmetrics.entity.session;
 import com.modelmetrics.api.modelmetrics.entity.Event;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.helper.session.PlatformStatus;
+import com.modelmetrics.api.modelmetrics.util.Money;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,6 +24,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -80,22 +82,25 @@ public class Session {
   // DERIVED VALUES
   @Transient private Integer tasksCompleted;
   @Transient private BigDecimal totalMinutesWorked;
-  @Transient private BigDecimal grossEarnings;
-  @Transient private BigDecimal taxAllocation;
-  @Transient private BigDecimal netEarnings;
+  @Transient private Money grossEarnings;
+  @Transient private Money taxAllocation;
+  @Transient private Money netEarnings;
 
   /** postLoad. */
   @PostLoad
   public void postLoad() {
+    Currency userCurrency = this.user.getCurrency();
+
     this.tasksCompleted = SessionCalculator.calculateTasksCompleted(this.events);
     this.totalMinutesWorked = SessionCalculator.calculateTotalMinutesWorked(this.events);
 
-    this.grossEarnings = SessionCalculator.calculateGrossEarnings(totalMinutesWorked, hourlyRate);
+    this.grossEarnings =
+        SessionCalculator.calculateGrossEarnings(totalMinutesWorked, hourlyRate, userCurrency);
     this.taxAllocation =
         SessionCalculator.calculateTaxAllocation(
-            this.grossEarnings, this.user.getTaxAllocationPercentage());
+            grossEarnings, this.user.getTaxAllocationPercentage(), userCurrency);
     this.netEarnings =
-        SessionCalculator.calculateNetEarnings(this.grossEarnings, this.taxAllocation);
+        SessionCalculator.calculateNetEarnings(grossEarnings, taxAllocation, userCurrency);
   }
 
   /** prePersist. */
