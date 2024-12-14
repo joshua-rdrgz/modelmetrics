@@ -76,7 +76,7 @@ public class User {
     lastUpdatedAt = currentTime;
 
     taxAllocationPercentage = 24;
-    currency = Currency.getInstance("us");
+    currency = Currency.getInstance("USD");
   }
 
   /** PreUpdate. */
