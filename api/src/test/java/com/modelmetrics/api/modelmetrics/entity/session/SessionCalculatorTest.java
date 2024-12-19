@@ -16,7 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@DisplayName("SessionCalculator")
+@DisplayName("SessionCalculatorTest")
 class SessionCalculatorTest {
 
   private static final Currency USD = Currency.getInstance("USD");
@@ -197,7 +197,7 @@ class SessionCalculatorTest {
     void calculateTaxAllocation(String description, TestCase testCase) {
       assertEquals(
           testCase.expected,
-          SessionCalculator.calculateTaxAllocation(testCase.grossEarnings, testCase.taxRate, USD));
+          SessionCalculator.calculateTaxAllocation(testCase.grossEarnings, testCase.taxRate));
     }
 
     private static Stream<Arguments> taxAllocationTestCases() {
@@ -207,7 +207,7 @@ class SessionCalculatorTest {
               TestCase.builder()
                   .grossEarnings(null)
                   .taxRate(20.0)
-                  .expected(Money.builder().amount(BigDecimal.ZERO).currency(USD).build())
+                  .expected(Money.builder().amount(BigDecimal.ZERO).currency(null).build())
                   .build()),
           Arguments.of(
               "$100.00 at 20% tax should equal $20.00",
@@ -262,8 +262,7 @@ class SessionCalculatorTest {
     void calculateNetEarnings(String description, TestCase testCase) {
       assertEquals(
           testCase.expected,
-          SessionCalculator.calculateNetEarnings(
-              testCase.grossEarnings, testCase.taxAllocation, USD));
+          SessionCalculator.calculateNetEarnings(testCase.grossEarnings, testCase.taxAllocation));
     }
 
     private static Stream<Arguments> netEarningsTestCases() {
@@ -273,7 +272,7 @@ class SessionCalculatorTest {
               TestCase.builder()
                   .grossEarnings(null)
                   .taxAllocation(null)
-                  .expected(Money.builder().amount(BigDecimal.ZERO).currency(USD).build())
+                  .expected(Money.builder().amount(BigDecimal.ZERO).currency(null).build())
                   .build()),
           Arguments.of(
               "$100.00 - $20.00 tax should equal $80.00",

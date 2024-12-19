@@ -36,55 +36,45 @@ public class Money {
   }
 
   /**
-   * Calculates the gross earnings based on total minutes worked and hourly rate.
+   * Multiplies the amount by a given factor.
    *
-   * @param totalMinutesWorked The total minutes worked.
-   * @param hourlyRate The hourly rate.
-   * @param currency The currency to use for the calculation.
-   * @return The gross earnings as a Money object.
+   * @param factor The factor to multiply by.
+   * @return The resulting Money object.
    */
-  public static Money calculateGrossEarnings(
-      BigDecimal totalMinutesWorked, BigDecimal hourlyRate, Currency currency) {
-    if (totalMinutesWorked == null || hourlyRate == null) {
-      return Money.builder().amount(BigDecimal.ZERO).currency(currency).build();
-    }
-    BigDecimal amount = hourlyRate.multiply(totalMinutesWorked).divide(BigDecimal.valueOf(60));
-    return Money.builder().amount(amount).currency(currency).build();
+  public Money multiply(BigDecimal factor) {
+    return Money.builder().amount(this.amount.multiply(factor)).currency(this.currency).build();
   }
 
   /**
-   * Calculates the tax allocation based on gross earnings and tax rate.
+   * Divides the amount by a given divisor.
    *
-   * @param grossEarnings The gross earnings.
-   * @param taxAllocationPercentage The tax allocation percentage.
-   * @param currency The currency to use for the calculation.
-   * @return The tax allocation as a Money object.
+   * @param divisor The divisor to divide by.
+   * @return The resulting Money object.
    */
-  public static Money calculateTaxAllocation(
-      Money grossEarnings, double taxAllocationPercentage, Currency currency) {
-    if (grossEarnings == null) {
-      return Money.builder().amount(BigDecimal.ZERO).currency(currency).build();
-    }
-    BigDecimal taxRate =
-        BigDecimal.valueOf(taxAllocationPercentage).divide(BigDecimal.valueOf(100));
-    BigDecimal amount = grossEarnings.getAmount().multiply(taxRate);
-    return Money.builder().amount(amount).currency(currency).build();
+  public Money divide(BigDecimal divisor) {
+    return Money.builder()
+        .amount(this.amount.divide(divisor, 2, RoundingMode.HALF_UP))
+        .currency(this.currency)
+        .build();
   }
 
   /**
-   * Calculates the net earnings based on gross earnings and tax allocation.
+   * Subtracts a given amount from the current amount.
    *
-   * @param grossEarnings The gross earnings.
-   * @param taxAllocation The tax allocation.
-   * @param currency The currency to use for the calculation.
-   * @return The net earnings as a Money object, never less than 0.00.
+   * @param subtrahend The amount to subtract.
+   * @return The resulting Money object.
    */
-  public static Money calculateNetEarnings(
-      Money grossEarnings, Money taxAllocation, Currency currency) {
-    if (grossEarnings == null || taxAllocation == null) {
-      return Money.builder().amount(BigDecimal.ZERO).currency(currency).build();
-    }
-    BigDecimal amount = grossEarnings.getAmount().subtract(taxAllocation.getAmount());
-    return Money.builder().amount(amount).currency(currency).build();
+  public Money subtract(BigDecimal subtrahend) {
+    return Money.builder().amount(this.amount.subtract(subtrahend)).currency(this.currency).build();
+  }
+
+  /**
+   * Adds a given amount to the current amount.
+   *
+   * @param addend The amount to add.
+   * @return The resulting Money object.
+   */
+  public Money add(BigDecimal addend) {
+    return Money.builder().amount(this.amount.add(addend)).currency(this.currency).build();
   }
 }
