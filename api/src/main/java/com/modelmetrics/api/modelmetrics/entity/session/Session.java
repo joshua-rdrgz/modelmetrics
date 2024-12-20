@@ -52,7 +52,7 @@ public class Session {
   @Column(name = "project_name", nullable = false)
   private String projectName;
 
-  @Column(name = "hourly_rate", nullable = false)
+  @Column(name = "hourly_rate", nullable = false, precision = 10, scale = 2)
   private BigDecimal hourlyRate;
 
   @ManyToOne

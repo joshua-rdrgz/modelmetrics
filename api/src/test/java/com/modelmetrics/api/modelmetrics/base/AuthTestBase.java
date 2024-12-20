@@ -45,4 +45,16 @@ public abstract class AuthTestBase extends EmailTestBase {
   protected Cookie getTokenCookie() {
     return tokenCookie;
   }
+
+  protected User createAndSaveUser(String email) {
+    User newUser =
+        User.builder()
+            .firstName("Test")
+            .lastName("User")
+            .email(email)
+            .password(passwordEncoder.encode("password"))
+            .verified(true)
+            .build();
+    return userRepository.save(newUser);
+  }
 }
