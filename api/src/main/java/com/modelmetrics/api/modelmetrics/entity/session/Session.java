@@ -24,7 +24,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -53,7 +52,7 @@ public class Session {
   @Column(name = "project_name", nullable = false)
   private String projectName;
 
-  @Column(name = "hourly_rate", nullable = false)
+  @Column(name = "hourly_rate", nullable = false, precision = 10, scale = 2)
   private BigDecimal hourlyRate;
 
   @ManyToOne
@@ -89,18 +88,16 @@ public class Session {
   /** postLoad. */
   @PostLoad
   public void postLoad() {
-    Currency userCurrency = this.user.getCurrency();
-
     this.tasksCompleted = SessionCalculator.calculateTasksCompleted(this.events);
     this.totalMinutesWorked = SessionCalculator.calculateTotalMinutesWorked(this.events);
 
     this.grossEarnings =
-        SessionCalculator.calculateGrossEarnings(totalMinutesWorked, hourlyRate, userCurrency);
+        SessionCalculator.calculateGrossEarnings(
+            totalMinutesWorked, hourlyRate, this.user.getCurrency());
     this.taxAllocation =
         SessionCalculator.calculateTaxAllocation(
-            grossEarnings, this.user.getTaxAllocationPercentage(), userCurrency);
-    this.netEarnings =
-        SessionCalculator.calculateNetEarnings(grossEarnings, taxAllocation, userCurrency);
+            grossEarnings, this.user.getTaxAllocationPercentage());
+    this.netEarnings = SessionCalculator.calculateNetEarnings(grossEarnings, taxAllocation);
   }
 
   /** prePersist. */

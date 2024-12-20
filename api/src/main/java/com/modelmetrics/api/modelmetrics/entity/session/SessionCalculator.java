@@ -78,12 +78,19 @@ public final class SessionCalculator {
    *
    * @param totalMinutesWorked The total minutes worked.
    * @param hourlyRate The hourly rate.
-   * @param currency The currency to use for the calculation.
    * @return The gross earnings as a Money object.
    */
   public static Money calculateGrossEarnings(
       BigDecimal totalMinutesWorked, BigDecimal hourlyRate, Currency currency) {
-    return Money.calculateGrossEarnings(totalMinutesWorked, hourlyRate, currency);
+    if (totalMinutesWorked == null || hourlyRate == null) {
+      return Money.builder().amount(BigDecimal.ZERO).currency(currency).build();
+    }
+
+    BigDecimal grossEarnings =
+        hourlyRate
+            .multiply(totalMinutesWorked)
+            .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+    return Money.builder().amount(grossEarnings).currency(currency).build();
   }
 
   /**
@@ -91,12 +98,16 @@ public final class SessionCalculator {
    *
    * @param grossEarnings The gross earnings.
    * @param taxAllocationPercentage The tax allocation percentage.
-   * @param currency The currency to use for the calculation.
    * @return The tax allocation as a Money object.
    */
-  public static Money calculateTaxAllocation(
-      Money grossEarnings, double taxAllocationPercentage, Currency currency) {
-    return Money.calculateTaxAllocation(grossEarnings, taxAllocationPercentage, currency);
+  public static Money calculateTaxAllocation(Money grossEarnings, double taxAllocationPercentage) {
+    if (grossEarnings == null) {
+      return Money.builder().amount(BigDecimal.ZERO).build();
+    }
+    BigDecimal taxRate =
+        BigDecimal.valueOf(taxAllocationPercentage)
+            .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+    return grossEarnings.multiply(taxRate);
   }
 
   /**
@@ -104,11 +115,13 @@ public final class SessionCalculator {
    *
    * @param grossEarnings The gross earnings.
    * @param taxAllocation The tax allocation.
-   * @param currency The currency to use for the calculation.
    * @return The net earnings as a Money object, never less than 0.00.
    */
-  public static Money calculateNetEarnings(
-      Money grossEarnings, Money taxAllocation, Currency currency) {
-    return Money.calculateNetEarnings(grossEarnings, taxAllocation, currency);
+  public static Money calculateNetEarnings(Money grossEarnings, Money taxAllocation) {
+    if (grossEarnings == null) {
+      return Money.builder().amount(BigDecimal.ZERO).build();
+    }
+
+    return grossEarnings.subtract(taxAllocation.getAmount());
   }
 }
