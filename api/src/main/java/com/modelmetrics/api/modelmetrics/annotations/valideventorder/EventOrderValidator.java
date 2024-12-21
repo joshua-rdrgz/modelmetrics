@@ -4,6 +4,7 @@ import com.modelmetrics.api.modelmetrics.dto.session.EventDto;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,20 +21,42 @@ public class EventOrderValidator implements ConstraintValidator<ValidEventOrder,
       return true; // Let @NotEmpty handle empty lists
     }
 
+    List<String> errorMessages = new ArrayList<>();
+
     try {
       List<EventDto> sortedEvents = getSortedEvents(events);
 
       if (sortedEvents.size() < 2) {
-        return false;
+        errorMessages.add(
+            "There must be at least 2 events labeled START and FINISH for the events to be valid."
+                + " You have entered only "
+                + (sortedEvents.size())
+                + " event(s).");
       }
 
-      boolean hasValidStartAndEnd = hasValidStartAndEndEvents(sortedEvents);
-      if (!hasValidStartAndEnd) {
-        return false;
+      if (!hasValidStartAndEndEvents(sortedEvents)) {
+        errorMessages.add(
+            "Events must have a valid START and FINISH event at positions 0 and "
+                + (sortedEvents.size() - 1)
+                + " respectively.");
       }
 
-      return validateEventSequence(sortedEvents);
+      validateEventSequence(sortedEvents, errorMessages);
 
+      if (errorMessages.isEmpty()) {
+        return true;
+      }
+
+      // Custom error messages present, disable default
+      context.disableDefaultConstraintViolation();
+
+      // Add custom error messages
+      for (String message : errorMessages) {
+        context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+      }
+
+      // Fail validation
+      return false;
     } catch (NullPointerException | IllegalArgumentException e) {
       return false;
     }
@@ -49,10 +72,11 @@ public class EventOrderValidator implements ConstraintValidator<ValidEventOrder,
     return isEventType(firstEvent, EventType.START) && isEventType(lastEvent, EventType.FINISH);
   }
 
-  private boolean validateEventSequence(List<EventDto> sortedEvents) {
+  private void validateEventSequence(List<EventDto> sortedEvents, List<String> errorMessages) {
     int breakCount = 0;
     int resumeCount = 0;
 
+    // Loop through middle events (excludes START and FINISH)
     for (int i = 1; i < sortedEvents.size() - 1; i++) {
       EventDto currentEvent = sortedEvents.get(i);
       EventDto nextEvent = sortedEvents.get(i + 1);
@@ -60,29 +84,37 @@ public class EventOrderValidator implements ConstraintValidator<ValidEventOrder,
 
       EventType currentEventType = EventType.valueOf(currentEvent.getType().toUpperCase());
 
+      int position = i + 1;
+
       switch (currentEventType) {
         case BREAK:
           breakCount++;
           if (!isEventType(nextEvent, EventType.RESUME)) {
-            return false;
+            errorMessages.add(
+                "BREAK event at index " + position + " must be followed by a RESUME event.");
           }
           break;
         case RESUME:
           resumeCount++;
           if (!isEventType(previousEvent, EventType.BREAK)) {
-            return false;
+            errorMessages.add("RESUME event at index " + position + " must follow a BREAK event.");
           }
           break;
         case TASKCOMPLETE:
           if (isEventType(previousEvent, EventType.BREAK)) {
-            return false;
+            errorMessages.add(
+                "TASKCOMPLETE event at index " + position + " cannot follow a BREAK event.");
           }
           break;
         default:
-          return false;
+          errorMessages.add(
+              "Invalid event type at index " + position + ": " + currentEvent.getType());
+          break;
       }
     }
 
-    return breakCount == resumeCount;
+    if (breakCount != resumeCount) {
+      errorMessages.add("The number of BREAK events must equal the number of RESUME events.");
+    }
   }
 }

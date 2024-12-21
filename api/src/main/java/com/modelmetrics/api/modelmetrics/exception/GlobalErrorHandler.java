@@ -45,13 +45,27 @@ public class GlobalErrorHandler {
   public ResponseEntity<ErrorResponse> handleValidationExceptions(
       MethodArgumentNotValidException ex) {
     Map<String, String> errors = new HashMap<>();
-    ex.getBindingResult()
-        .getAllErrors()
+    ex.getBindingResult().getAllErrors().stream()
+        .sorted(
+            (error1, error2) -> {
+              String field1 = ((FieldError) error1).getField();
+              String field2 = ((FieldError) error2).getField();
+
+              // Primary comparison: field names
+              int fieldComparison = field1.compareTo(field2);
+              if (fieldComparison != 0) {
+                return fieldComparison;
+              }
+
+              // Secondary comparison: error messages
+              return error1.getDefaultMessage().compareTo(error2.getDefaultMessage());
+            })
         .forEach(
-            (error) -> {
+            error -> {
               String fieldName = ((FieldError) error).getField();
               String errorMessage = error.getDefaultMessage();
-              errors.put(fieldName, errorMessage);
+              errors.merge(
+                  fieldName, errorMessage, (existing, newError) -> existing + ", " + newError);
             });
 
     String errorMessage = "Validation failed. Please check the errors field for details.";
