@@ -31,7 +31,7 @@ public class SessionDto {
 
   @Valid
   @NotEmpty(message = "Events list must not be empty")
-  @ValidEventOrder(message = "Events must be in the correct chronological order")
+  @ValidEventOrder
   private List<EventDto> events;
 
   // Calculated properties

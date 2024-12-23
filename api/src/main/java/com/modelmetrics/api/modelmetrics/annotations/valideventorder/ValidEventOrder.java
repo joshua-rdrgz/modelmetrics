@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidEventOrder {
   /** Message to be displayed when validation fails. */
-  String message() default "Events are not in the correct order or format";
+  String message() default "Error parsing events";
 
   /** Groups for which this validation belongs to. */
   Class<?>[] groups() default {};

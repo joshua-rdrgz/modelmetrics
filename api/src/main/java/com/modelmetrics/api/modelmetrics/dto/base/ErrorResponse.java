@@ -16,7 +16,7 @@ public class ErrorResponse extends Response<Void> {
   private final long timestamp;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  private Map<String, String> errors;
+  private Map<String, Object> errors;
 
   /**
    * ErrorResponse constructor.
@@ -37,7 +37,7 @@ public class ErrorResponse extends Response<Void> {
    * @param statusCode error status code.
    * @param errors map of field-specific validation errors.
    */
-  public ErrorResponse(String message, int statusCode, Map<String, String> errors) {
+  public ErrorResponse(String message, int statusCode, Map<String, Object> errors) {
     this(message, statusCode);
     this.errors = errors;
   }
