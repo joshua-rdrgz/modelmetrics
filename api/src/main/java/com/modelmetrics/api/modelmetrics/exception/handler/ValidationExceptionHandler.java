@@ -2,7 +2,9 @@ package com.modelmetrics.api.modelmetrics.exception.handler;
 
 import com.modelmetrics.api.modelmetrics.dto.base.ErrorResponse;
 import com.modelmetrics.api.modelmetrics.exception.InvalidInputException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -27,7 +29,7 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidationExceptions(
       MethodArgumentNotValidException ex) {
-    Map<String, String> errors = new HashMap<>();
+    Map<String, Object> errors = new HashMap<>();
     ex.getBindingResult().getAllErrors().stream()
         .sorted(
             (error1, error2) -> {
@@ -43,8 +45,22 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
             error -> {
               String fieldName = ((FieldError) error).getField();
               String errorMessage = error.getDefaultMessage();
-              errors.merge(
-                  fieldName, errorMessage, (existing, newError) -> existing + ", " + newError);
+              errors.compute(
+                  fieldName,
+                  (key, value) -> {
+                    if (value instanceof List) {
+                      List<String> list = safeCastToList(value);
+                      list.add(errorMessage);
+                      return list;
+                    } else if (value instanceof String) {
+                      List<String> list = new ArrayList<>();
+                      list.add((String) value);
+                      list.add(errorMessage);
+                      return list;
+                    } else {
+                      return errorMessage;
+                    }
+                  });
             });
 
     String errorMessage = "Validation failed. Please check the errors field for details.";
@@ -62,13 +78,13 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
    */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<ErrorResponse> handleInvalidJson(HttpMessageNotReadableException ex) {
-    Map<String, String> errors = new HashMap<>();
+    Map<String, Object> errors = new HashMap<>();
     Throwable mostSpecificCause = ex.getMostSpecificCause();
     errors.put("exception", ex.getClass().getSimpleName());
     errors.put(
         "details", mostSpecificCause != null ? mostSpecificCause.getMessage() : ex.getMessage());
 
-    logException("❌ INVALID JSON", errors.get("details"));
+    logException("❌ INVALID JSON", errors.get("details").toString());
 
     String userFriendlyMessage =
         "The request contains invalid JSON. Please check your request body.";
@@ -100,5 +116,20 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
   public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException ex) {
     logException("❌ INVALID INPUT", ex.getMessage());
     return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
+  }
+
+  /**
+   * Safely casts an object to a list of strings.
+   *
+   * @param value the object to cast
+   * @return the casted list of strings
+   * @throws ClassCastException if the object is not a list of strings
+   */
+  @SuppressWarnings("unchecked")
+  private List<String> safeCastToList(Object value) {
+    if (value instanceof List<?> list && list.stream().allMatch(item -> item instanceof String)) {
+      return (List<String>) value;
+    }
+    throw new ClassCastException("Value is not a List<String>");
   }
 }
