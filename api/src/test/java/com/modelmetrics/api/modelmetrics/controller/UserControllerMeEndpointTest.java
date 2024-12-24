@@ -13,6 +13,7 @@ import com.modelmetrics.api.modelmetrics.dto.user.UserDto;
 import com.modelmetrics.api.modelmetrics.entity.EmailResetToken;
 import com.modelmetrics.api.modelmetrics.repository.emailresettoken.EmailResetTokenRepository;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,6 +50,8 @@ class UserControllerMeEndpointTest extends AuthTestBase {
     assertEquals(getUser().getFirstName(), userDto.getFirstName());
     assertEquals(getUser().getLastName(), userDto.getLastName());
     assertEquals(getUser().getEmail(), userDto.getEmail());
+    assertEquals(getUser().getCurrency(), userDto.getCurrency());
+    assertEquals(getUser().getTaxAllocationPercentage(), userDto.getTaxAllocationPercentage());
   }
 
   @Test
@@ -99,7 +102,13 @@ class UserControllerMeEndpointTest extends AuthTestBase {
 
   @Test
   void updateCurrentUser_whenLoggedIn_shouldUpdateUser() throws Exception {
-    UserDto userDto = UserDto.builder().firstName("Jane").lastName("Doe").build();
+    UserDto userDto =
+        UserDto.builder()
+            .firstName("Jane")
+            .lastName("Doe")
+            .currency(Currency.getInstance("USD"))
+            .taxAllocationPercentage(50)
+            .build();
 
     MvcResult result =
         mockMvc
@@ -115,6 +124,8 @@ class UserControllerMeEndpointTest extends AuthTestBase {
         objectMapper.readValue(result.getResponse().getContentAsString(), UserDto.class);
     assertEquals(userDto.getFirstName(), updatedUserDto.getFirstName());
     assertEquals(userDto.getLastName(), updatedUserDto.getLastName());
+    assertEquals(userDto.getCurrency(), updatedUserDto.getCurrency());
+    assertEquals(userDto.getTaxAllocationPercentage(), updatedUserDto.getTaxAllocationPercentage());
   }
 
   @Test
@@ -133,7 +144,13 @@ class UserControllerMeEndpointTest extends AuthTestBase {
   @Test
   void updateCurrentUser_whenNoEmailResetTokenExists_shouldReturnUserWithoutPendingChange()
       throws Exception {
-    UserDto userDto = UserDto.builder().firstName("Jane").lastName("Doe").build();
+    UserDto userDto =
+        UserDto.builder()
+            .firstName("Jane")
+            .lastName("Doe")
+            .currency(Currency.getInstance("USD"))
+            .taxAllocationPercentage(50)
+            .build();
 
     MvcResult result =
         mockMvc
@@ -149,6 +166,8 @@ class UserControllerMeEndpointTest extends AuthTestBase {
         objectMapper.readValue(result.getResponse().getContentAsString(), UserDto.class);
     assertEquals(userDto.getFirstName(), updatedUserDto.getFirstName());
     assertEquals(userDto.getLastName(), updatedUserDto.getLastName());
+    assertEquals(userDto.getCurrency(), updatedUserDto.getCurrency());
+    assertEquals(userDto.getTaxAllocationPercentage(), updatedUserDto.getTaxAllocationPercentage());
     assertFalse(updatedUserDto.isPendingEmailChange());
     assertNull(updatedUserDto.getPendingEmail());
   }
@@ -166,7 +185,13 @@ class UserControllerMeEndpointTest extends AuthTestBase {
             .build();
     emailResetTokenRepository.save(emailResetToken);
 
-    UserDto userDto = UserDto.builder().firstName("Jane").lastName("Doe").build();
+    UserDto userDto =
+        UserDto.builder()
+            .firstName("Jane")
+            .lastName("Doe")
+            .currency(Currency.getInstance("USD"))
+            .taxAllocationPercentage(50)
+            .build();
 
     MvcResult result =
         mockMvc
@@ -182,7 +207,49 @@ class UserControllerMeEndpointTest extends AuthTestBase {
         objectMapper.readValue(result.getResponse().getContentAsString(), UserDto.class);
     assertEquals(userDto.getFirstName(), updatedUserDto.getFirstName());
     assertEquals(userDto.getLastName(), updatedUserDto.getLastName());
+    assertEquals(userDto.getCurrency(), updatedUserDto.getCurrency());
+    assertEquals(userDto.getTaxAllocationPercentage(), updatedUserDto.getTaxAllocationPercentage());
     assertEquals(true, updatedUserDto.isPendingEmailChange());
     assertEquals(newEmail, updatedUserDto.getPendingEmail());
+  }
+
+  @Test
+  void updateCurrentUser_whenTaxAllocationPercentageIsTooBig_shouldReturnBadRequest()
+      throws Exception {
+    UserDto userDto =
+        UserDto.builder()
+            .firstName("Jane")
+            .lastName("Doe")
+            .currency(Currency.getInstance("USD"))
+            .taxAllocationPercentage(101)
+            .build();
+
+    mockMvc
+        .perform(
+            put("/api/v1/users/me")
+                .cookie(getTokenCookie())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userDto)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void updateCurrentUser_whenTaxAllocationPercentageIsTooSmall_shouldReturnBadRequest()
+      throws Exception {
+    UserDto userDto =
+        UserDto.builder()
+            .firstName("Jane")
+            .lastName("Doe")
+            .currency(Currency.getInstance("USD"))
+            .taxAllocationPercentage(-1)
+            .build();
+
+    mockMvc
+        .perform(
+            put("/api/v1/users/me")
+                .cookie(getTokenCookie())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userDto)))
+        .andExpect(status().isBadRequest());
   }
 }

@@ -8,6 +8,7 @@ import com.modelmetrics.api.modelmetrics.dto.response.EntityChangeResponse;
 import com.modelmetrics.api.modelmetrics.dto.user.UserDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.service.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +33,7 @@ public class UserController {
 
   @PutMapping("/me")
   public ResponseEntity<UserDto> updateCurrentUser(
-      @AuthenticationPrincipal User user, @RequestBody UserDto userDto) {
+      @AuthenticationPrincipal User user, @Valid @RequestBody UserDto userDto) {
     return ResponseEntity.ok(userService.updateCurrentUser(user, userDto));
   }
 

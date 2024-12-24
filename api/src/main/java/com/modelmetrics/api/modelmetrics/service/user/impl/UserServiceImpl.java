@@ -46,10 +46,6 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDto updateCurrentUser(User user, UserDto userDto) {
-    if (userDto.getEmail() != null) {
-      throw new IllegalArgumentException("This endpoint does not support updating emails.");
-    }
-
     User managedUser = userRepository.findFirstById(user.getId());
 
     managedUser.setFirstName(userDto.getFirstName());
