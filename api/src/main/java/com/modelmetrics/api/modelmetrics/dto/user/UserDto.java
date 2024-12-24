@@ -4,6 +4,11 @@ import com.modelmetrics.api.modelmetrics.entity.EmailResetToken;
 import com.modelmetrics.api.modelmetrics.entity.PasswordResetOtp;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.util.TimeUtil;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.Optional;
@@ -15,15 +20,28 @@ import lombok.Data;
 @Builder
 public class UserDto {
 
+  @NotNull
+  @Size(min = 1, max = 50)
   private String firstName;
+
+  @NotNull
+  @Size(min = 1, max = 50)
   private String lastName;
+
+  @Null(message = "Email changes not supported in this fashion")
   private String email;
+
+  @NotNull private Currency currency;
+
+  @NotNull
+  @Min(0)
+  @Max(100)
+  private Integer taxAllocationPercentage;
+
   private boolean pendingEmailChange;
   private String pendingEmail;
   private PasswordResetStatus passwordResetStatus;
   private Optional<Long> cooldownMinsRemaining;
-  private Currency currency;
-  private Integer taxAllocationPercentage;
 
   /** Creates a UserDto from User, EmailResetToken, and PasswordResetOtp. */
   public static UserDto fromUser(
