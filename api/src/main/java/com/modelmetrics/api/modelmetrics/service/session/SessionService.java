@@ -1,8 +1,11 @@
 package com.modelmetrics.api.modelmetrics.service.session;
 
 import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
+import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /** SessionService. */
 public interface SessionService {
@@ -15,6 +18,15 @@ public interface SessionService {
    * @return The created session DTO with calculated fields
    */
   SessionDto createSession(User user, SessionDto sessionDto);
+
+  /**
+   * Retrieves a page of sessions for a given user.
+   *
+   * @param user The authenticated user
+   * @param pageable The pagination information
+   * @return A page of session summary DTOs
+   */
+  Page<SessionSummaryDto> getAllSessionsForUser(User user, Pageable pageable);
 
   /**
    * Updates an existing session and its associated events.

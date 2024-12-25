@@ -2,6 +2,7 @@ package com.modelmetrics.api.modelmetrics.service.session.impl;
 
 import com.modelmetrics.api.modelmetrics.dto.session.EventDto;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
+import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.Event;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /** SessionServiceImpl. */
@@ -53,6 +56,12 @@ public class SessionServiceImpl implements SessionService {
         sessionRepository
             .findById(savedSession.getId())
             .orElseThrow(() -> new EntityNotFoundException("Session not found after creation")));
+  }
+
+  @Override
+  public Page<SessionSummaryDto> getAllSessionsForUser(User user, Pageable pageable) {
+    Page<Session> sessions = sessionRepository.findByUser(user, pageable);
+    return sessions.map(this::convertToSummaryDto);
   }
 
   @Override
@@ -112,6 +121,15 @@ public class SessionServiceImpl implements SessionService {
         .grossEarnings(session.getGrossEarnings())
         .taxAllocation(session.getTaxAllocation())
         .netEarnings(session.getNetEarnings())
+        .build();
+  }
+
+  private SessionSummaryDto convertToSummaryDto(Session session) {
+    return SessionSummaryDto.builder()
+        .id(session.getId())
+        .date(session.getCreatedAt().toLocalDate())
+        .projectName(session.getProjectName())
+        .grossEarnings(session.getGrossEarnings())
         .build();
   }
 

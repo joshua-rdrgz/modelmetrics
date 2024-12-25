@@ -2,16 +2,20 @@ package com.modelmetrics.api.modelmetrics.controller;
 
 import com.modelmetrics.api.modelmetrics.dto.base.SuccessResponse;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
+import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.exception.UnauthorizedSessionAccessException;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,6 +37,15 @@ public class SessionController {
     SessionDto createdSession = sessionService.createSession(user, sessionDto);
     return new ResponseEntity<>(
         new SuccessResponse<>(createdSession, HttpStatus.CREATED.value()), HttpStatus.CREATED);
+  }
+
+  /** getAllSessions. */
+  @GetMapping
+  public ResponseEntity<SuccessResponse<Page<SessionSummaryDto>>> getAllSessions(
+      @AuthenticationPrincipal User user, Pageable pageable) {
+    Page<SessionSummaryDto> sessions = sessionService.getAllSessionsForUser(user, pageable);
+    return new ResponseEntity<>(
+        new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);
   }
 
   /** updateSessionData. */

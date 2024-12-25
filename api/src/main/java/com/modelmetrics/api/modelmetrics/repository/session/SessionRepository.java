@@ -2,8 +2,9 @@ package com.modelmetrics.api.modelmetrics.repository.session;
 
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,10 +12,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SessionRepository extends JpaRepository<Session, UUID> {
   /**
-   * Find sessions by user.
+   * Find sessions by user with pagination.
    *
    * @param user The user whose sessions are being retrieved.
-   * @return A list of sessions belonging to the given user.
+   * @param pageable The pagination information.
+   * @return A page of sessions belonging to the given user.
    */
-  List<Session> findByUser(User user);
+  Page<Session> findByUser(User user, Pageable pageable);
 }
