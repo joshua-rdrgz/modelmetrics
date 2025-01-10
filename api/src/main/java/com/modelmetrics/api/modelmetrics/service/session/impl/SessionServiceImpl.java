@@ -12,13 +12,16 @@ import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 /** SessionServiceImpl. */
@@ -59,9 +62,36 @@ public class SessionServiceImpl implements SessionService {
   }
 
   @Override
-  public Page<SessionSummaryDto> getAllSessionsForUser(User user, Pageable pageable) {
-    Page<Session> sessions = sessionRepository.findByUser(user, pageable);
-    return sessions.map(this::convertToSummaryDto);
+  public Page<SessionSummaryDto> getAllSessionsForUser(
+      User user,
+      Specification<Session> spec,
+      Pageable pageable,
+      BigDecimal minGrossEarnings,
+      BigDecimal maxGrossEarnings) {
+
+    // Fetch data from the database
+    List<Session> sessions = sessionRepository.findAll(spec);
+
+    // Calculate gross earnings and filter in-memory
+    List<SessionSummaryDto> filteredSessions =
+        sessions.stream()
+            .map(this::convertToSummaryDto)
+            .filter(
+                session -> {
+                  BigDecimal grossEarnings = session.getGrossEarnings().getAmount();
+                  return (minGrossEarnings == null
+                          || grossEarnings.compareTo(minGrossEarnings) >= 0)
+                      && (maxGrossEarnings == null
+                          || grossEarnings.compareTo(maxGrossEarnings) <= 0);
+                })
+            .collect(Collectors.toList());
+
+    // Handle pagination manually
+    int start = (int) pageable.getOffset();
+    int end = Math.min((start + pageable.getPageSize()), filteredSessions.size());
+    List<SessionSummaryDto> paginatedSessions = filteredSessions.subList(start, end);
+
+    return new PageImpl<>(paginatedSessions, pageable, filteredSessions.size());
   }
 
   @Override

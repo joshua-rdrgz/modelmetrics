@@ -4,13 +4,18 @@ import com.modelmetrics.api.modelmetrics.dto.base.SuccessResponse;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
+import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.exception.UnauthorizedSessionAccessException;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
+import com.modelmetrics.api.modelmetrics.specification.SessionSpecifications;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** SessionController. */
@@ -42,8 +48,26 @@ public class SessionController {
   /** getAllSessions. */
   @GetMapping
   public ResponseEntity<SuccessResponse<Page<SessionSummaryDto>>> getAllSessions(
-      @AuthenticationPrincipal User user, Pageable pageable) {
-    Page<SessionSummaryDto> sessions = sessionService.getAllSessionsForUser(user, pageable);
+      @AuthenticationPrincipal User user,
+      Pageable pageable,
+      @RequestParam(required = false) String projectName,
+      @RequestParam(required = false) LocalDate date,
+      @RequestParam(required = false) BigDecimal minGrossEarnings,
+      @RequestParam(required = false) BigDecimal maxGrossEarnings) {
+
+    Specification<Session> spec = Specification.where(null);
+
+    if (projectName != null) {
+      spec = spec.and(SessionSpecifications.hasProjectName(projectName));
+    }
+    if (date != null) {
+      spec = spec.and(SessionSpecifications.hasDate(date));
+    }
+
+    Page<SessionSummaryDto> sessions =
+        sessionService.getAllSessionsForUser(
+            user, spec, pageable, minGrossEarnings, maxGrossEarnings);
+
     return new ResponseEntity<>(
         new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);
   }
