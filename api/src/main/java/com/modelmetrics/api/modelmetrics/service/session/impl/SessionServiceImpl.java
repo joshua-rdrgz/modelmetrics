@@ -66,8 +66,15 @@ public class SessionServiceImpl implements SessionService {
       User user,
       Specification<Session> spec,
       Pageable pageable,
+      Integer tasksCompleted,
+      BigDecimal minTotalMinutesWorked,
+      BigDecimal maxTotalMinutesWorked,
       BigDecimal minGrossEarnings,
-      BigDecimal maxGrossEarnings) {
+      BigDecimal maxGrossEarnings,
+      BigDecimal minTaxAllocation,
+      BigDecimal maxTaxAllocation,
+      BigDecimal minNetEarnings,
+      BigDecimal maxNetEarnings) {
 
     // Fetch data from the database
     List<Session> sessions = sessionRepository.findAll(spec);
@@ -75,7 +82,7 @@ public class SessionServiceImpl implements SessionService {
     // Calculate gross earnings and filter in-memory
     List<SessionSummaryDto> filteredSessions =
         sessions.stream()
-            .map(this::convertToSummaryDto)
+            // Filter by grossEarnings specifications
             .filter(
                 session -> {
                   BigDecimal grossEarnings = session.getGrossEarnings().getAmount();
@@ -84,6 +91,38 @@ public class SessionServiceImpl implements SessionService {
                       && (maxGrossEarnings == null
                           || grossEarnings.compareTo(maxGrossEarnings) <= 0);
                 })
+            // Filter by tasks completed specifications
+            .filter(
+                session -> {
+                  Integer innerTasksCompleted = session.getTasksCompleted();
+                  return tasksCompleted == null || tasksCompleted == innerTasksCompleted;
+                })
+            // Filter by total minutes worked specifications
+            .filter(
+                session -> {
+                  BigDecimal totalMinutesWorked = session.getTotalMinutesWorked();
+                  return (minTotalMinutesWorked == null
+                          || totalMinutesWorked.compareTo(minTotalMinutesWorked) >= 0)
+                      && (maxTotalMinutesWorked == null
+                          || totalMinutesWorked.compareTo(maxTotalMinutesWorked) <= 0);
+                })
+            // Filter by tax allocation specifications
+            .filter(
+                session -> {
+                  BigDecimal taxAllocation = session.getTaxAllocation().getAmount();
+                  return (minTaxAllocation == null
+                          || taxAllocation.compareTo(minTaxAllocation) >= 0)
+                      && (maxTaxAllocation == null
+                          || taxAllocation.compareTo(maxTaxAllocation) <= 0);
+                })
+            // Filter by net earnings specifications
+            .filter(
+                session -> {
+                  BigDecimal netEarnings = session.getNetEarnings().getAmount();
+                  return (minNetEarnings == null || netEarnings.compareTo(minNetEarnings) >= 0)
+                      && (maxNetEarnings == null || netEarnings.compareTo(maxNetEarnings) <= 0);
+                })
+            .map(this::convertToSummaryDto)
             .collect(Collectors.toList());
 
     // Handle pagination manually

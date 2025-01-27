@@ -2,6 +2,8 @@ package com.modelmetrics.api.modelmetrics.specification;
 
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
+import com.modelmetrics.api.modelmetrics.helper.session.PlatformStatus;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,5 +37,15 @@ public class SessionSpecifications {
   public static Specification<Session> hasProjectName(String projectName) {
     return (root, query, criteriaBuilder) ->
         criteriaBuilder.equal(root.get("projectName"), projectName);
+  }
+
+  public static Specification<Session> hasHourlyRate(BigDecimal hourlyRate) {
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("hourlyRate"), hourlyRate);
+  }
+
+  public static Specification<Session> hasPlatformStatus(PlatformStatus platformStatus) {
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("platformStatus"), platformStatus);
   }
 }

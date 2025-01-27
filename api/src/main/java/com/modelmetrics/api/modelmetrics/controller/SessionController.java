@@ -6,6 +6,7 @@ import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.exception.UnauthorizedSessionAccessException;
+import com.modelmetrics.api.modelmetrics.helper.session.PlatformStatus;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import com.modelmetrics.api.modelmetrics.specification.SessionSpecifications;
 import jakarta.validation.Valid;
@@ -51,22 +52,59 @@ public class SessionController {
       @AuthenticationPrincipal User user,
       Pageable pageable,
       @RequestParam(required = false) String projectName,
+      @RequestParam(required = false) BigDecimal hourlyRate,
+      @RequestParam(required = false) PlatformStatus platformStatus,
       @RequestParam(required = false) LocalDate date,
+      @RequestParam(required = false) LocalDate startDate,
+      @RequestParam(required = false) LocalDate endDate,
+      @RequestParam(required = false) Integer tasksCompleted,
+      @RequestParam(required = false) BigDecimal minTotalMinutesWorked,
+      @RequestParam(required = false) BigDecimal maxTotalMinutesWorked,
       @RequestParam(required = false) BigDecimal minGrossEarnings,
-      @RequestParam(required = false) BigDecimal maxGrossEarnings) {
+      @RequestParam(required = false) BigDecimal maxGrossEarnings,
+      @RequestParam(required = false) BigDecimal minTaxAllocation,
+      @RequestParam(required = false) BigDecimal maxTaxAllocation,
+      @RequestParam(required = false) BigDecimal minNetEarnings,
+      @RequestParam(required = false) BigDecimal maxNetEarnings) {
 
-    Specification<Session> spec = Specification.where(null);
+    Specification<Session> spec = Specification.where(SessionSpecifications.createdByUser(user));
 
+    // Apply project name filter
     if (projectName != null) {
       spec = spec.and(SessionSpecifications.hasProjectName(projectName));
     }
+
+    // Apply date == AND date between filters
     if (date != null) {
       spec = spec.and(SessionSpecifications.hasDate(date));
+    } else if (startDate != null && endDate != null) {
+      spec = spec.and(SessionSpecifications.isBetweenDates(startDate, endDate));
+    }
+
+    // Apply hourly rate filter
+    if (hourlyRate != null) {
+      spec = spec.and(SessionSpecifications.hasHourlyRate(hourlyRate));
+    }
+
+    // Apply platform status filter
+    if (platformStatus != null) {
+      spec = spec.and(SessionSpecifications.hasPlatformStatus(platformStatus));
     }
 
     Page<SessionSummaryDto> sessions =
         sessionService.getAllSessionsForUser(
-            user, spec, pageable, minGrossEarnings, maxGrossEarnings);
+            user,
+            spec,
+            pageable,
+            tasksCompleted,
+            minTotalMinutesWorked,
+            maxTotalMinutesWorked,
+            minGrossEarnings,
+            maxGrossEarnings,
+            minTaxAllocation,
+            maxTaxAllocation,
+            minNetEarnings,
+            maxNetEarnings);
 
     return new ResponseEntity<>(
         new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);

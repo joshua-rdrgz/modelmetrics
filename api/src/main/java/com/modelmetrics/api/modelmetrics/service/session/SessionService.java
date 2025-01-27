@@ -36,8 +36,15 @@ public interface SessionService {
       User user,
       Specification<Session> spec,
       Pageable pageable,
+      Integer tasksCompleted,
+      BigDecimal minTotalMinutesWorked,
+      BigDecimal maxTotalMinutesWorked,
       BigDecimal minGrossEarnings,
-      BigDecimal maxGrossEarnings);
+      BigDecimal maxGrossEarnings,
+      BigDecimal minTaxAllocation,
+      BigDecimal maxTaxAllocation,
+      BigDecimal minNetEarnings,
+      BigDecimal maxNetEarnings);
 
   /**
    * Updates an existing session and its associated events.
