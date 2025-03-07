@@ -9,6 +9,7 @@ import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import com.modelmetrics.api.modelmetrics.repository.session.SessionRepository;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
+import com.modelmetrics.api.modelmetrics.util.ResourceFilterer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -76,54 +77,22 @@ public class SessionServiceImpl implements SessionService {
       BigDecimal minNetEarnings,
       BigDecimal maxNetEarnings) {
 
-    // Fetch data from the database
-    List<Session> sessions = sessionRepository.findAll(spec);
-
-    // Calculate gross earnings and filter in-memory
     List<SessionSummaryDto> filteredSessions =
-        sessions.stream()
-            // Filter by grossEarnings specifications
-            .filter(
-                session -> {
-                  BigDecimal grossEarnings = session.getGrossEarnings().getAmount();
-                  return (minGrossEarnings == null
-                          || grossEarnings.compareTo(minGrossEarnings) >= 0)
-                      && (maxGrossEarnings == null
-                          || grossEarnings.compareTo(maxGrossEarnings) <= 0);
-                })
-            // Filter by tasks completed specifications
-            .filter(
-                session -> {
-                  Integer innerTasksCompleted = session.getTasksCompleted();
-                  return tasksCompleted == null || tasksCompleted == innerTasksCompleted;
-                })
-            // Filter by total minutes worked specifications
-            .filter(
-                session -> {
-                  BigDecimal totalMinutesWorked = session.getTotalMinutesWorked();
-                  return (minTotalMinutesWorked == null
-                          || totalMinutesWorked.compareTo(minTotalMinutesWorked) >= 0)
-                      && (maxTotalMinutesWorked == null
-                          || totalMinutesWorked.compareTo(maxTotalMinutesWorked) <= 0);
-                })
-            // Filter by tax allocation specifications
-            .filter(
-                session -> {
-                  BigDecimal taxAllocation = session.getTaxAllocation().getAmount();
-                  return (minTaxAllocation == null
-                          || taxAllocation.compareTo(minTaxAllocation) >= 0)
-                      && (maxTaxAllocation == null
-                          || taxAllocation.compareTo(maxTaxAllocation) <= 0);
-                })
-            // Filter by net earnings specifications
-            .filter(
-                session -> {
-                  BigDecimal netEarnings = session.getNetEarnings().getAmount();
-                  return (minNetEarnings == null || netEarnings.compareTo(minNetEarnings) >= 0)
-                      && (maxNetEarnings == null || netEarnings.compareTo(maxNetEarnings) <= 0);
-                })
-            .map(this::convertToSummaryDto)
-            .collect(Collectors.toList());
+        new ResourceFilterer<>(sessionRepository.findAll(spec).stream())
+            .filterNumberRange(
+                session -> session.getGrossEarnings().getAmount(),
+                minGrossEarnings,
+                maxGrossEarnings)
+            .filterEquality(Session::getTasksCompleted, tasksCompleted)
+            .filterNumberRange(
+                Session::getTotalMinutesWorked, minTotalMinutesWorked, maxTotalMinutesWorked)
+            .filterNumberRange(
+                session -> session.getTaxAllocation().getAmount(),
+                minTaxAllocation,
+                maxTaxAllocation)
+            .filterNumberRange(
+                session -> session.getNetEarnings().getAmount(), minNetEarnings, maxNetEarnings)
+            .mapAndCollect(this::convertToSummaryDto);
 
     // Handle pagination manually
     int start = (int) pageable.getOffset();

@@ -9,6 +9,7 @@ import com.modelmetrics.api.modelmetrics.exception.UnauthorizedSessionAccessExce
 import com.modelmetrics.api.modelmetrics.helper.session.PlatformStatus;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import com.modelmetrics.api.modelmetrics.specification.SessionSpecifications;
+import com.modelmetrics.api.modelmetrics.util.SpecificationBuilder;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -67,29 +68,22 @@ public class SessionController {
       @RequestParam(required = false) BigDecimal minNetEarnings,
       @RequestParam(required = false) BigDecimal maxNetEarnings) {
 
-    Specification<Session> spec = Specification.where(SessionSpecifications.createdByUser(user));
+    Specification<Session> baseSpec =
+        Specification.where(SessionSpecifications.createdByUser(user));
 
-    // Apply project name filter
-    if (projectName != null) {
-      spec = spec.and(SessionSpecifications.hasProjectName(projectName));
-    }
-
-    // Apply date == AND date between filters
-    if (date != null) {
-      spec = spec.and(SessionSpecifications.hasDate(date));
-    } else if (startDate != null && endDate != null) {
-      spec = spec.and(SessionSpecifications.isBetweenDates(startDate, endDate));
-    }
-
-    // Apply hourly rate filter
-    if (hourlyRate != null) {
-      spec = spec.and(SessionSpecifications.hasHourlyRate(hourlyRate));
-    }
-
-    // Apply platform status filter
-    if (platformStatus != null) {
-      spec = spec.and(SessionSpecifications.hasPlatformStatus(platformStatus));
-    }
+    Specification<Session> spec =
+        new SpecificationBuilder<>(baseSpec)
+            .addSpecification(
+                SessionSpecifications.hasProjectName(projectName), projectName != null)
+            .addSpecification(SessionSpecifications.hasHourlyRate(hourlyRate), hourlyRate != null)
+            .addSpecification(
+                SessionSpecifications.hasPlatformStatus(platformStatus), platformStatus != null)
+            .addSpecification(
+                date != null
+                    ? SessionSpecifications.hasDate(date)
+                    : SessionSpecifications.isBetweenDates(startDate, endDate),
+                date != null || (startDate != null && endDate != null))
+            .build();
 
     Page<SessionSummaryDto> sessions =
         sessionService.getAllSessionsForUser(

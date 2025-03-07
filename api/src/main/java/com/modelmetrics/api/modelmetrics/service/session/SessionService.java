@@ -28,8 +28,15 @@ public interface SessionService {
    * @param user The authenticated user
    * @param spec The specifications for what to query for
    * @param pageable The pagination information
-   * @param minGrossEarnings The min amount a session should have made
-   * @param maxGrossEarnings The max amount a session should have made
+   * @param tasksCompleted Filter for the # of tasks a session should have completed
+   * @param minTotalMinutesWorked Filter for the min total worked minutes of a session
+   * @param maxTotalMinutesWorked Filter for the max total worked minutes of a session
+   * @param minGrossEarnings Filter for the min amount a session should have made
+   * @param maxGrossEarnings Filter for the max amount a session should have made
+   * @param minTaxAllocation Filter for the min amount of taxes to be set aside
+   * @param maxTaxAllocation Filter for the max amount of taxes to be set aside
+   * @param minNetEarnings Filter for the min amount a session should have made after taxes
+   * @param maxNetEarnings Filter for the min amount a session should have made after taxes
    * @return A page of session summary DTOs
    */
   Page<SessionSummaryDto> getAllSessionsForUser(
