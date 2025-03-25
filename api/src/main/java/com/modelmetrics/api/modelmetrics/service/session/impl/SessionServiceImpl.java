@@ -148,6 +148,15 @@ public class SessionServiceImpl implements SessionService {
         .orElseThrow(() -> new EntityNotFoundException("Session not found"));
   }
 
+  @Override
+  public SessionDto getSessionById(UUID sessionId) {
+    Session session =
+        sessionRepository
+            .findById(sessionId)
+            .orElseThrow(() -> new EntityNotFoundException("Session not found"));
+    return convertToDto(session);
+  }
+
   private SessionDto convertToDto(Session session) {
     return SessionDto.builder()
         .id(session.getId())

@@ -133,4 +133,18 @@ public class SessionController {
     sessionService.deleteSession(id);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
+
+  /** Gets a single session by ID. */
+  @GetMapping("/{id}")
+  public ResponseEntity<SuccessResponse<SessionDto>> getSessionById(
+      @AuthenticationPrincipal User user, @PathVariable UUID id) {
+    if (!sessionService.isUserAuthorizedForSession(user, id)) {
+      throw new UnauthorizedSessionAccessException(
+          "User does not have permission to access this session");
+    }
+
+    SessionDto session = sessionService.getSessionById(id);
+    return new ResponseEntity<>(
+        new SuccessResponse<>(session, HttpStatus.OK.value()), HttpStatus.OK);
+  }
 }

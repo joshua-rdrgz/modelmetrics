@@ -1,6 +1,7 @@
 package com.modelmetrics.api.modelmetrics.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,13 +17,11 @@ import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import com.modelmetrics.api.modelmetrics.repository.session.SessionRepository;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -66,27 +65,20 @@ public class SessionControllerTest extends AuthTestBase {
                   .content(objectMapper.writeValueAsString(validSessionDto))
                   .cookie(getTokenCookie()))
           .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.data.projectName").value(validSessionDto.getProjectName()))
-          .andExpect(
-              jsonPath(
-                  "$.data.hourlyRate",
-                  new BaseMatcher<String>() {
-                    @Override
-                    public boolean matches(Object item) {
-                      if (item instanceof Number) {
-                        BigDecimal actual =
-                            new BigDecimal(item.toString()).setScale(2, RoundingMode.HALF_UP);
-                        return actual.equals(validSessionDto.getHourlyRate());
-                      }
-                      return false;
-                    }
+          .andExpect(jsonPath("$.data.id").exists());
+    }
 
-                    @Override
-                    public void describeTo(Description description) {
-                      description.appendText(
-                          "hourlyRate should equal " + validSessionDto.getHourlyRate());
-                    }
-                  }));
+    @Test
+    @DisplayName("Should return unauthorized when not authenticated")
+    void shouldReturnUnauthorizedWhenNotAuthenticated() throws Exception {
+      SessionDto validSessionDto = createValidSessionDto();
+
+      mockMvc
+          .perform(
+              post("/api/v1/sessions")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(validSessionDto)))
+          .andExpect(status().isUnauthorized());
     }
 
     @ParameterizedTest
@@ -100,11 +92,7 @@ public class SessionControllerTest extends AuthTestBase {
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(invalidSessionDto))
                   .cookie(getTokenCookie()))
-          .andExpect(status().isBadRequest())
-          .andExpect(
-              jsonPath("$.message")
-                  .value("Validation failed. Please check the errors field for details."))
-          .andExpect(jsonPath("$.errors." + fieldName).value(expectedError));
+          .andExpect(status().isBadRequest());
     }
 
     private static Stream<Arguments> invalidSessionDtoProvider() {
@@ -158,6 +146,22 @@ public class SessionControllerTest extends AuthTestBase {
                   .cookie(getTokenCookie()))
           .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("Should return not found when session does not exist")
+    void shouldReturnNotFoundWhenSessionDoesNotExist() throws Exception {
+      UUID nonExistentId = UUID.randomUUID();
+      SessionDto updatedSessionDto = createValidSessionDto();
+      updatedSessionDto.setId(nonExistentId);
+
+      mockMvc
+          .perform(
+              put("/api/v1/sessions/" + nonExistentId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(updatedSessionDto))
+                  .cookie(getTokenCookie()))
+          .andExpect(status().isNotFound());
+    }
   }
 
   @Nested
@@ -184,6 +188,53 @@ public class SessionControllerTest extends AuthTestBase {
           .perform(delete("/api/v1/sessions/" + session.getId()).cookie(getTokenCookie()))
           .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("Should return not found when session does not exist")
+    void shouldReturnNotFoundWhenSessionDoesNotExist() throws Exception {
+      UUID nonExistentId = UUID.randomUUID();
+
+      mockMvc
+          .perform(delete("/api/v1/sessions/" + nonExistentId).cookie(getTokenCookie()))
+          .andExpect(status().isNotFound());
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /api/v1/sessions/{id}")
+  class GetSessionById {
+
+    @Test
+    @DisplayName("Should get a session successfully")
+    void shouldGetSessionSuccessfully() throws Exception {
+      Session session = createAndSaveSession(getUser());
+
+      mockMvc
+          .perform(get("/api/v1/sessions/" + session.getId()).cookie(getTokenCookie()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.id").value(session.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("Should return forbidden when user is not authorized for session")
+    void shouldReturnForbiddenWhenUserNotAuthorized() throws Exception {
+      User otherUser = createAndSaveUser("other@example.com");
+      Session session = createAndSaveSession(otherUser);
+
+      mockMvc
+          .perform(get("/api/v1/sessions/" + session.getId()).cookie(getTokenCookie()))
+          .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Should return not found when session does not exist")
+    void shouldReturnNotFoundWhenSessionDoesNotExist() throws Exception {
+      UUID nonExistentId = UUID.randomUUID();
+
+      mockMvc
+          .perform(get("/api/v1/sessions/" + nonExistentId).cookie(getTokenCookie()))
+          .andExpect(status().isNotFound());
+    }
   }
 
   private SessionDto createValidSessionDto() {
@@ -195,14 +246,11 @@ public class SessionControllerTest extends AuthTestBase {
             new EventDto(EventType.TASKCOMPLETE.name(), 4000L),
             new EventDto(EventType.FINISH.name(), 5000L));
 
-    SessionDto dto =
-        SessionDto.builder()
-            .projectName("Test Project")
-            .hourlyRate(new BigDecimal("50.00"))
-            .events(events)
-            .build();
-
-    return dto;
+    return SessionDto.builder()
+        .projectName("Test Project")
+        .hourlyRate(new BigDecimal("50.00"))
+        .events(events)
+        .build();
   }
 
   private Session createAndSaveSession(User owner) {

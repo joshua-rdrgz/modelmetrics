@@ -76,4 +76,13 @@ public interface SessionService {
    * @return true if the user is authorized, false otherwise
    */
   boolean isUserAuthorizedForSession(User user, UUID sessionId);
+
+  /**
+   * Retrieves a session by its ID.
+   *
+   * @param sessionId The ID of the session to retrieve
+   * @return The session DTO with calculated fields
+   * @throws EntityNotFoundException if the session is not found
+   */
+  SessionDto getSessionById(UUID sessionId);
 }
