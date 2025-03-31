@@ -5,6 +5,7 @@ import { CurrentSessionPage } from '@/pages/CurrentSessionPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { FullErrorPage } from '@/pages/FullErrorPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { MySessionsPage } from '@/pages/MySessionsPage';
 import { ResendVerificationPage } from '@/pages/ResendVerificationPage';
 import { SignUpPage } from '@/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/pages/SignUpSuccessPage';
@@ -77,7 +78,8 @@ export const routerConfig: RouteObject[] = [
           },
           {
             path: 'my-sessions',
-            element: <div>My Sessions Page</div>,
+            element: <MySessionsPage />,
+            errorElement: <AppErrorPage />,
           },
           {
             path: 'settings',
