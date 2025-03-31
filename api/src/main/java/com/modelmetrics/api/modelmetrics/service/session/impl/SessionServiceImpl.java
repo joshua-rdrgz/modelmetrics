@@ -2,20 +2,27 @@ package com.modelmetrics.api.modelmetrics.service.session.impl;
 
 import com.modelmetrics.api.modelmetrics.dto.session.EventDto;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
+import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.Event;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import com.modelmetrics.api.modelmetrics.repository.session.SessionRepository;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
+import com.modelmetrics.api.modelmetrics.util.ResourceFilterer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 /** SessionServiceImpl. */
@@ -53,6 +60,46 @@ public class SessionServiceImpl implements SessionService {
         sessionRepository
             .findById(savedSession.getId())
             .orElseThrow(() -> new EntityNotFoundException("Session not found after creation")));
+  }
+
+  @Override
+  public Page<SessionSummaryDto> getAllSessionsForUser(
+      User user,
+      Specification<Session> spec,
+      Pageable pageable,
+      Integer tasksCompleted,
+      BigDecimal minTotalMinutesWorked,
+      BigDecimal maxTotalMinutesWorked,
+      BigDecimal minGrossEarnings,
+      BigDecimal maxGrossEarnings,
+      BigDecimal minTaxAllocation,
+      BigDecimal maxTaxAllocation,
+      BigDecimal minNetEarnings,
+      BigDecimal maxNetEarnings) {
+
+    List<SessionSummaryDto> filteredSessions =
+        new ResourceFilterer<>(sessionRepository.findAll(spec).stream())
+            .filterNumberRange(
+                session -> session.getGrossEarnings().getAmount(),
+                minGrossEarnings,
+                maxGrossEarnings)
+            .filterEquality(Session::getTasksCompleted, tasksCompleted)
+            .filterNumberRange(
+                Session::getTotalMinutesWorked, minTotalMinutesWorked, maxTotalMinutesWorked)
+            .filterNumberRange(
+                session -> session.getTaxAllocation().getAmount(),
+                minTaxAllocation,
+                maxTaxAllocation)
+            .filterNumberRange(
+                session -> session.getNetEarnings().getAmount(), minNetEarnings, maxNetEarnings)
+            .mapAndCollect(this::convertToSummaryDto);
+
+    // Handle pagination manually
+    int start = (int) pageable.getOffset();
+    int end = Math.min((start + pageable.getPageSize()), filteredSessions.size());
+    List<SessionSummaryDto> paginatedSessions = filteredSessions.subList(start, end);
+
+    return new PageImpl<>(paginatedSessions, pageable, filteredSessions.size());
   }
 
   @Override
@@ -101,6 +148,15 @@ public class SessionServiceImpl implements SessionService {
         .orElseThrow(() -> new EntityNotFoundException("Session not found"));
   }
 
+  @Override
+  public SessionDto getSessionById(UUID sessionId) {
+    Session session =
+        sessionRepository
+            .findById(sessionId)
+            .orElseThrow(() -> new EntityNotFoundException("Session not found"));
+    return convertToDto(session);
+  }
+
   private SessionDto convertToDto(Session session) {
     return SessionDto.builder()
         .id(session.getId())
@@ -112,6 +168,15 @@ public class SessionServiceImpl implements SessionService {
         .grossEarnings(session.getGrossEarnings())
         .taxAllocation(session.getTaxAllocation())
         .netEarnings(session.getNetEarnings())
+        .build();
+  }
+
+  private SessionSummaryDto convertToSummaryDto(Session session) {
+    return SessionSummaryDto.builder()
+        .id(session.getId())
+        .date(session.getCreatedAt().toLocalDate())
+        .projectName(session.getProjectName())
+        .grossEarnings(session.getGrossEarnings())
         .build();
   }
 
