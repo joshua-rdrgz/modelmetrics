@@ -29,6 +29,15 @@ const mockSessions: SessionSummaryDto[] = [
       currency: 'USD',
     },
   },
+  {
+    id: '4',
+    date: '2021-01-04',
+    projectName: 'Project 4',
+    grossEarnings: {
+      amount: 250,
+      currency: 'USD',
+    },
+  },
 ];
 
 export const MySessionsPage = () => {
