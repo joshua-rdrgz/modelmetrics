@@ -99,10 +99,13 @@ export function SessionHistoryTable({ sessions }: SessionHistoryTableProps) {
             </T.Row>
           ))}
         </T.Header>
-        <T.Body className='divide-y divide-primary/20'>
+        <T.Body>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
-              <T.Row key={row.id} className='hover:bg-muted/50'>
+              <T.Row
+                key={row.id}
+                className='border-primary/20 hover:bg-muted/50'
+              >
                 {row.getVisibleCells().map((cell) => (
                   <T.Cell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
