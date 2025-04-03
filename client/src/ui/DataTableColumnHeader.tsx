@@ -53,6 +53,15 @@ export function DataTableColumnHeader<TData, TValue>({
             <ArrowDown className='h-3.5 w-3.5 text-muted-foreground/70' />
             Desc
           </DM.MenuItem>
+          <DM.MenuSeparator />
+          <DM.MenuItem
+            className='gap-1'
+            onClick={() => column.clearSorting()}
+            disabled={!column.getIsSorted()}
+          >
+            <ChevronsUpDown className='h-3.5 w-3.5 text-muted-foreground/70' />
+            Reset
+          </DM.MenuItem>
         </DM.MenuContent>
       </DM.Menu>
     </div>
