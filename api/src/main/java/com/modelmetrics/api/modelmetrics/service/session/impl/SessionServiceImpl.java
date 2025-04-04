@@ -15,7 +15,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +77,8 @@ public class SessionServiceImpl implements SessionService {
       BigDecimal minTaxAllocation,
       BigDecimal maxTaxAllocation,
       BigDecimal minNetEarnings,
-      BigDecimal maxNetEarnings) {
+      BigDecimal maxNetEarnings,
+      Set<String> fields) {
 
     List<SessionSummaryDto> filteredSessions =
         new ResourceFilterer<>(sessionRepository.findAll(spec).stream())
@@ -92,7 +95,7 @@ public class SessionServiceImpl implements SessionService {
                 maxTaxAllocation)
             .filterNumberRange(
                 session -> session.getNetEarnings().getAmount(), minNetEarnings, maxNetEarnings)
-            .mapAndCollect(this::convertToSummaryDto);
+            .mapAndCollect(session -> convertToSummaryDto(session, fields));
 
     // Handle pagination manually
     int start = (int) pageable.getOffset();
@@ -171,13 +174,57 @@ public class SessionServiceImpl implements SessionService {
         .build();
   }
 
-  private SessionSummaryDto convertToSummaryDto(Session session) {
-    return SessionSummaryDto.builder()
-        .id(session.getId())
-        .date(session.getCreatedAt().toLocalDate())
-        .projectName(session.getProjectName())
-        .grossEarnings(session.getGrossEarnings())
-        .build();
+  private SessionSummaryDto convertToSummaryDto(Session session, Set<String> fields) {
+    SessionSummaryDto.SessionSummaryDtoBuilder builder =
+        SessionSummaryDto.builder().id(session.getId());
+    Set<String> fieldsCopy = fields == null ? new HashSet<>() : new HashSet<>(fields);
+
+    if (fields == null || fields.contains("date")) {
+      builder.date(session.getCreatedAt().toLocalDate());
+      fieldsCopy.remove("date");
+    }
+    if (fields == null || fields.contains("projectName")) {
+      builder.projectName(session.getProjectName());
+      fieldsCopy.remove("projectName");
+    }
+    if (fields == null || fields.contains("grossEarnings")) {
+      builder.grossEarnings(session.getGrossEarnings());
+      fieldsCopy.remove("grossEarnings");
+    }
+    if (fields != null && fields.contains("hourlyRate")) {
+      builder.hourlyRate(session.getHourlyRate());
+      fieldsCopy.remove("hourlyRate");
+    }
+    if (fields != null && fields.contains("tasksCompleted")) {
+      builder.tasksCompleted(session.getTasksCompleted());
+      fieldsCopy.remove("tasksCompleted");
+    }
+    if (fields != null && fields.contains("totalMinutesWorked")) {
+      builder.totalMinutesWorked(session.getTotalMinutesWorked());
+      fieldsCopy.remove("totalMinutesWorked");
+    }
+    if (fields != null && fields.contains("taxAllocation")) {
+      builder.taxAllocation(session.getTaxAllocation());
+      fieldsCopy.remove("taxAllocation");
+    }
+    if (fields != null && fields.contains("netEarnings")) {
+      builder.netEarnings(session.getNetEarnings());
+      fieldsCopy.remove("netEarnings");
+    }
+    if (fields != null && fields.contains("events")) {
+      builder.events(session.getEvents().stream().map(this::convertToEventDto).toList());
+      fieldsCopy.remove("events");
+    }
+
+    if (!fieldsCopy.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Invalid fields: "
+              + String.join(", ", fieldsCopy)
+              + ". Valid fields are: date, projectName, grossEarnings, hourlyRate, tasksCompleted,"
+              + " totalMinutesWorked, taxAllocation, netEarnings, events");
+    }
+
+    return builder.build();
   }
 
   private Event convertToEventEntity(EventDto dto, Session session) {

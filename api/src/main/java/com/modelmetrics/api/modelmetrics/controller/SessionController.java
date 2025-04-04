@@ -13,6 +13,7 @@ import com.modelmetrics.api.modelmetrics.util.SpecificationBuilder;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -66,7 +67,8 @@ public class SessionController {
       @RequestParam(required = false) BigDecimal minTaxAllocation,
       @RequestParam(required = false) BigDecimal maxTaxAllocation,
       @RequestParam(required = false) BigDecimal minNetEarnings,
-      @RequestParam(required = false) BigDecimal maxNetEarnings) {
+      @RequestParam(required = false) BigDecimal maxNetEarnings,
+      @RequestParam(required = false) Set<String> fields) {
 
     Specification<Session> baseSpec =
         Specification.where(SessionSpecifications.createdByUser(user));
@@ -98,7 +100,8 @@ public class SessionController {
             minTaxAllocation,
             maxTaxAllocation,
             minNetEarnings,
-            maxNetEarnings);
+            maxNetEarnings,
+            fields);
 
     return new ResponseEntity<>(
         new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);
