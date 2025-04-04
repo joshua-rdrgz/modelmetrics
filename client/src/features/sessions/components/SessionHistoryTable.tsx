@@ -53,6 +53,13 @@ export function SessionHistoryTable({ sessions }: SessionHistoryTableProps) {
             </span>
           );
         },
+        sortingFn: (rowA, rowB, columnId) => {
+          const earningsA =
+            rowA.getValue<SessionSummaryDto['grossEarnings']>(columnId);
+          const earningsB =
+            rowB.getValue<SessionSummaryDto['grossEarnings']>(columnId);
+          return earningsA.amount - earningsB.amount;
+        },
       }),
     ],
     [columnHelper],
