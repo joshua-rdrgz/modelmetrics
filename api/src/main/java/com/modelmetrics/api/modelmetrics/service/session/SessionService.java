@@ -4,7 +4,6 @@ import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
-import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -29,31 +28,15 @@ public interface SessionService {
    * @param user The authenticated user
    * @param spec Specification for database filtering
    * @param pageable Pagination information
-   * @param tasksCompleted Filter by tasks completed
-   * @param minTotalMinutesWorked Filter by minimum minutes worked
-   * @param maxTotalMinutesWorked Filter by maximum minutes worked
-   * @param minGrossEarnings Filter by minimum gross earnings
-   * @param maxGrossEarnings Filter by maximum gross earnings
-   * @param minTaxAllocation Filter by minimum tax allocation
-   * @param maxTaxAllocation Filter by maximum tax allocation
-   * @param minNetEarnings Filter by minimum net earnings
-   * @param maxNetEarnings Filter by maximum net earnings
+   * @param transientFilter Filter for transient fields
    * @param fields Set of field names to include in the response
    * @return Page of SessionSummaryDto with selected fields
    */
   Page<SessionSummaryDto> getAllSessionsForUser(
       User user,
-      Specification<Session> spec,
+      Specification<Session> specification,
       Pageable pageable,
-      Integer tasksCompleted,
-      BigDecimal minTotalMinutesWorked,
-      BigDecimal maxTotalMinutesWorked,
-      BigDecimal minGrossEarnings,
-      BigDecimal maxGrossEarnings,
-      BigDecimal minTaxAllocation,
-      BigDecimal maxTaxAllocation,
-      BigDecimal minNetEarnings,
-      BigDecimal maxNetEarnings,
+      String transientFilter,
       Set<String> fields);
 
   /**

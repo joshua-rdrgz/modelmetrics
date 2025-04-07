@@ -16,6 +16,8 @@ import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import com.modelmetrics.api.modelmetrics.repository.session.SessionRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +51,8 @@ public class SessionControllerTest extends AuthTestBase {
 
   @Autowired private ObjectMapper objectMapper;
 
+  @PersistenceContext private EntityManager entityManager;
+
   @Nested
   @DisplayName("POST /api/v1/sessions")
   class CreateSession {
@@ -69,8 +73,8 @@ public class SessionControllerTest extends AuthTestBase {
     }
 
     @Test
-    @DisplayName("Should return unauthorized when not authenticated")
-    void shouldReturnUnauthorizedWhenNotAuthenticated() throws Exception {
+    @DisplayName("Should return unauthorized for unauthenticated request")
+    void shouldReturnUnauthorizedForUnauthenticatedRequest() throws Exception {
       SessionDto validSessionDto = createValidSessionDto();
 
       mockMvc
@@ -106,6 +110,79 @@ public class SessionControllerTest extends AuthTestBase {
               SessionDto.builder().projectName("Test").hourlyRate(BigDecimal.valueOf(50)).build(),
               "events",
               "Events list must not be empty"));
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /api/v1/sessions")
+  class GetAllSessions {
+
+    @Test
+    @DisplayName("Should get all sessions for user")
+    void shouldGetAllSessionsForUser() throws Exception {
+      Session session = createAndSaveSession(getUser());
+
+      mockMvc
+          .perform(get("/api/v1/sessions").cookie(getTokenCookie()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.content[0].id").value(session.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("Should filter sessions by non-transient property")
+    void shouldFilterSessionsByNonTransientProperty() throws Exception {
+      Session session = createAndSaveSession(getUser());
+      session.setProjectName("FilterTest");
+      sessionRepository.save(session);
+
+      mockMvc
+          .perform(get("/api/v1/sessions?filter=projectName=FilterTest").cookie(getTokenCookie()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.content[0].id").value(session.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("Should filter sessions by transient property using transientFilter parameter")
+    void shouldFilterSessionsByTransientProperty() throws Exception {
+      // Create and save the session
+      Session session = createAndSaveSession(getUser());
+
+      // Flush and clear are required because:
+      // 1. flush() ensures all pending changes are written to the database
+      // 2. clear() detaches all entities from the persistence context
+      // 3. This forces a fresh load of the entity which triggers @PostLoad
+      // 4. @PostLoad calculates transient properties like tasksCompleted
+      sessionRepository.flush();
+      entityManager.clear();
+
+      // Reload session to ensure transient properties are calculated
+      session = sessionRepository.findById(session.getId()).orElseThrow();
+
+      mockMvc
+          .perform(
+              get("/api/v1/sessions?transientFilter=tasksCompleted=1").cookie(getTokenCookie()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.content[0].id").value(session.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("Should combine both filter types")
+    void shouldCombineBothFilterTypes() throws Exception {
+      Session session = createAndSaveSession(getUser());
+      session.setProjectName("CombinedTest");
+      sessionRepository.save(session);
+
+      // Flush and clear required for transient property calculation
+      sessionRepository.flush();
+      entityManager.clear();
+      session = sessionRepository.findById(session.getId()).orElseThrow();
+
+      mockMvc
+          .perform(
+              get("/api/v1/sessions?filter=projectName=CombinedTest&transientFilter=tasksCompleted=1")
+                  .cookie(getTokenCookie()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.content[0].id").value(session.getId().toString()));
     }
   }
 
@@ -248,34 +325,29 @@ public class SessionControllerTest extends AuthTestBase {
 
     return SessionDto.builder()
         .projectName("Test Project")
-        .hourlyRate(new BigDecimal("50.00"))
+        .hourlyRate(BigDecimal.valueOf(50))
         .events(events)
         .build();
   }
 
-  private Session createAndSaveSession(User owner) {
-    Session session =
-        Session.builder()
-            .projectName("Test Project")
-            .hourlyRate(new BigDecimal("50.00"))
-            .user(owner)
-            .events(new ArrayList<>())
-            .build();
+  private Session createAndSaveSession(User user) {
+    Session session = new Session();
+    session.setProjectName("Test Project");
+    session.setHourlyRate(BigDecimal.valueOf(50));
+    session.setUser(user);
 
-    session
-        .getEvents()
-        .addAll(
-            Arrays.asList(
-                Event.builder().type(EventType.START).timestamp(1000L).session(session).build(),
-                Event.builder().type(EventType.BREAK).timestamp(2000L).session(session).build(),
-                Event.builder().type(EventType.RESUME).timestamp(3000L).session(session).build(),
-                Event.builder()
-                    .type(EventType.TASKCOMPLETE)
-                    .timestamp(4000L)
-                    .session(session)
-                    .build(),
-                Event.builder().type(EventType.FINISH).timestamp(5000L).session(session).build()));
+    List<Event> events = new ArrayList<>();
+    events.add(createEvent(EventType.START, 1000L, session));
+    events.add(createEvent(EventType.BREAK, 2000L, session));
+    events.add(createEvent(EventType.RESUME, 3000L, session));
+    events.add(createEvent(EventType.TASKCOMPLETE, 4000L, session));
+    events.add(createEvent(EventType.FINISH, 5000L, session));
+    session.setEvents(events);
 
     return sessionRepository.save(session);
+  }
+
+  private Event createEvent(EventType type, Long timestamp, Session session) {
+    return Event.builder().type(type).timestamp(timestamp).session(session).build();
   }
 }

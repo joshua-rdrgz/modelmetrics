@@ -10,7 +10,6 @@ import com.modelmetrics.api.modelmetrics.service.session.SessionFilterParser;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import com.modelmetrics.api.modelmetrics.specification.SessionSpecifications;
 import jakarta.validation.Valid;
-import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -52,15 +51,7 @@ public class SessionController {
       @AuthenticationPrincipal User user,
       Pageable pageable,
       @RequestParam(required = false) String filter,
-      @RequestParam(required = false) Integer tasksCompleted,
-      @RequestParam(required = false) BigDecimal minTotalMinutesWorked,
-      @RequestParam(required = false) BigDecimal maxTotalMinutesWorked,
-      @RequestParam(required = false) BigDecimal minGrossEarnings,
-      @RequestParam(required = false) BigDecimal maxGrossEarnings,
-      @RequestParam(required = false) BigDecimal minTaxAllocation,
-      @RequestParam(required = false) BigDecimal maxTaxAllocation,
-      @RequestParam(required = false) BigDecimal minNetEarnings,
-      @RequestParam(required = false) BigDecimal maxNetEarnings,
+      @RequestParam(required = false) String transientFilter,
       @RequestParam(required = false) Set<String> fields) {
 
     Specification<Session> baseSpec =
@@ -69,20 +60,7 @@ public class SessionController {
     Specification<Session> spec = baseSpec.and(SessionFilterParser.parseFilter(filter));
 
     Page<SessionSummaryDto> sessions =
-        sessionService.getAllSessionsForUser(
-            user,
-            spec,
-            pageable,
-            tasksCompleted,
-            minTotalMinutesWorked,
-            maxTotalMinutesWorked,
-            minGrossEarnings,
-            maxGrossEarnings,
-            minTaxAllocation,
-            maxTaxAllocation,
-            minNetEarnings,
-            maxNetEarnings,
-            fields);
+        sessionService.getAllSessionsForUser(user, spec, pageable, transientFilter, fields);
 
     return new ResponseEntity<>(
         new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);
