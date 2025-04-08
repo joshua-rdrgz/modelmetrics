@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.data.jpa.domain.Specification;
 
 /** SessionFilterParser. */
@@ -21,21 +23,14 @@ public class SessionFilterParser {
       if (filter != null && !filter.isEmpty()) {
         String[] filterParts = filter.split("&");
         for (String part : filterParts) {
-          String[] keyValue = part.split("=");
-          if (keyValue.length == 2) {
-            String keyAndPotentialOperator = keyValue[0];
-            String value = keyValue[1];
-            if (keyAndPotentialOperator.endsWith(">")) {
-              String key =
-                  keyAndPotentialOperator.substring(0, keyAndPotentialOperator.length() - 1);
-              predicates.add(createPredicate(key, value, criteriaBuilder, root, ">="));
-            } else if (keyAndPotentialOperator.endsWith("<")) {
-              String key =
-                  keyAndPotentialOperator.substring(0, keyAndPotentialOperator.length() - 1);
-              predicates.add(createPredicate(key, value, criteriaBuilder, root, "<="));
-            } else {
-              predicates.add(
-                  createPredicate(keyAndPotentialOperator, value, criteriaBuilder, root, "="));
+          Matcher matcher = Pattern.compile("(<=|>=|<|>)").matcher(part);
+          if (matcher.find()) {
+            String operator = matcher.group();
+            String[] keyValue = part.split(operator);
+            if (keyValue.length == 2) {
+              String key = keyValue[0];
+              String value = keyValue[1];
+              predicates.add(createPredicate(key, value, criteriaBuilder, root, operator));
             }
           }
         }
