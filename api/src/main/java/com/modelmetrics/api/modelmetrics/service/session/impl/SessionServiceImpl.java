@@ -9,13 +9,14 @@ import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.helper.session.EventType;
 import com.modelmetrics.api.modelmetrics.repository.session.SessionRepository;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
-import com.modelmetrics.api.modelmetrics.util.ResourceFilterer;
+import com.modelmetrics.api.modelmetrics.service.session.SessionTransientFilterParser;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -67,39 +68,27 @@ public class SessionServiceImpl implements SessionService {
       User user,
       Specification<Session> spec,
       Pageable pageable,
-      Integer tasksCompleted,
-      BigDecimal minTotalMinutesWorked,
-      BigDecimal maxTotalMinutesWorked,
-      BigDecimal minGrossEarnings,
-      BigDecimal maxGrossEarnings,
-      BigDecimal minTaxAllocation,
-      BigDecimal maxTaxAllocation,
-      BigDecimal minNetEarnings,
-      BigDecimal maxNetEarnings) {
+      String transientFilter,
+      Set<String> fields) {
 
-    List<SessionSummaryDto> filteredSessions =
-        new ResourceFilterer<>(sessionRepository.findAll(spec).stream())
-            .filterNumberRange(
-                session -> session.getGrossEarnings().getAmount(),
-                minGrossEarnings,
-                maxGrossEarnings)
-            .filterEquality(Session::getTasksCompleted, tasksCompleted)
-            .filterNumberRange(
-                Session::getTotalMinutesWorked, minTotalMinutesWorked, maxTotalMinutesWorked)
-            .filterNumberRange(
-                session -> session.getTaxAllocation().getAmount(),
-                minTaxAllocation,
-                maxTaxAllocation)
-            .filterNumberRange(
-                session -> session.getNetEarnings().getAmount(), minNetEarnings, maxNetEarnings)
-            .mapAndCollect(this::convertToSummaryDto);
+    List<Session> sessions = sessionRepository.findAll(spec);
+
+    // Apply transient property filtering
+    List<Session> filteredSessions =
+        SessionTransientFilterParser.parseTransientFilter(transientFilter).apply(sessions);
+
+    // Map to DTOs
+    List<SessionSummaryDto> sessionSummaries =
+        filteredSessions.stream()
+            .map(session -> convertToSummaryDto(session, fields))
+            .collect(Collectors.toList());
 
     // Handle pagination manually
     int start = (int) pageable.getOffset();
-    int end = Math.min((start + pageable.getPageSize()), filteredSessions.size());
-    List<SessionSummaryDto> paginatedSessions = filteredSessions.subList(start, end);
+    int end = Math.min((start + pageable.getPageSize()), sessionSummaries.size());
+    List<SessionSummaryDto> paginatedSummaries = sessionSummaries.subList(start, end);
 
-    return new PageImpl<>(paginatedSessions, pageable, filteredSessions.size());
+    return new PageImpl<>(paginatedSummaries, pageable, sessionSummaries.size());
   }
 
   @Override
@@ -171,13 +160,57 @@ public class SessionServiceImpl implements SessionService {
         .build();
   }
 
-  private SessionSummaryDto convertToSummaryDto(Session session) {
-    return SessionSummaryDto.builder()
-        .id(session.getId())
-        .date(session.getCreatedAt().toLocalDate())
-        .projectName(session.getProjectName())
-        .grossEarnings(session.getGrossEarnings())
-        .build();
+  private SessionSummaryDto convertToSummaryDto(Session session, Set<String> fields) {
+    SessionSummaryDto.SessionSummaryDtoBuilder builder =
+        SessionSummaryDto.builder().id(session.getId());
+    Set<String> fieldsCopy = fields == null ? new HashSet<>() : new HashSet<>(fields);
+
+    if (fields == null || fields.contains("date")) {
+      builder.date(session.getCreatedAt().toLocalDate());
+      fieldsCopy.remove("date");
+    }
+    if (fields == null || fields.contains("projectName")) {
+      builder.projectName(session.getProjectName());
+      fieldsCopy.remove("projectName");
+    }
+    if (fields == null || fields.contains("grossEarnings")) {
+      builder.grossEarnings(session.getGrossEarnings());
+      fieldsCopy.remove("grossEarnings");
+    }
+    if (fields != null && fields.contains("hourlyRate")) {
+      builder.hourlyRate(session.getHourlyRate());
+      fieldsCopy.remove("hourlyRate");
+    }
+    if (fields != null && fields.contains("tasksCompleted")) {
+      builder.tasksCompleted(session.getTasksCompleted());
+      fieldsCopy.remove("tasksCompleted");
+    }
+    if (fields != null && fields.contains("totalMinutesWorked")) {
+      builder.totalMinutesWorked(session.getTotalMinutesWorked());
+      fieldsCopy.remove("totalMinutesWorked");
+    }
+    if (fields != null && fields.contains("taxAllocation")) {
+      builder.taxAllocation(session.getTaxAllocation());
+      fieldsCopy.remove("taxAllocation");
+    }
+    if (fields != null && fields.contains("netEarnings")) {
+      builder.netEarnings(session.getNetEarnings());
+      fieldsCopy.remove("netEarnings");
+    }
+    if (fields != null && fields.contains("events")) {
+      builder.events(session.getEvents().stream().map(this::convertToEventDto).toList());
+      fieldsCopy.remove("events");
+    }
+
+    if (!fieldsCopy.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Invalid fields: "
+              + String.join(", ", fieldsCopy)
+              + ". Valid fields are: date, projectName, grossEarnings, hourlyRate, tasksCompleted,"
+              + " totalMinutesWorked, taxAllocation, netEarnings, events");
+    }
+
+    return builder.build();
   }
 
   private Event convertToEventEntity(EventDto dto, Session session) {
