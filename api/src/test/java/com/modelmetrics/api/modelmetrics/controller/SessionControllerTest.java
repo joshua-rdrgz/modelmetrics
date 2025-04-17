@@ -179,7 +179,9 @@ public class SessionControllerTest extends AuthTestBase {
 
       mockMvc
           .perform(
-              get("/api/v1/sessions?filter=projectName=CombinedTest&transientFilter=tasksCompleted=1")
+              get("/api/v1/sessions"
+                      + "?filter=projectName=CombinedTest"
+                      + "&transientFilter=tasksCompleted=1")
                   .cookie(getTokenCookie()))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.data.content[0].id").value(session.getId().toString()));
