@@ -26,7 +26,7 @@ public interface SessionService {
    * Retrieves all sessions for a user with filtering and dynamic field selection.
    *
    * @param user The authenticated user
-   * @param spec Specification for database filtering
+   * @param specification Specification for database filtering
    * @param pageable Pagination information
    * @param transientFilter Filter for transient fields
    * @param fields Set of field names to include in the response

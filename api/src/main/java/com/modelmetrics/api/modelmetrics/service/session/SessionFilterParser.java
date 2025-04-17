@@ -17,6 +17,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 /** SessionFilterParser. */
 public class SessionFilterParser {
+
+  /** parseFilter. */
   public static Specification<Session> parseFilter(String filter) {
     return (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
@@ -39,6 +41,7 @@ public class SessionFilterParser {
     };
   }
 
+  /** createPredicate. */
   private static Predicate createPredicate(
       String key,
       String value,

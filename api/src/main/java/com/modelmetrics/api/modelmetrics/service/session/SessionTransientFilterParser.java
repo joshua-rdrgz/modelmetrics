@@ -9,6 +9,7 @@ import java.util.function.Function;
 /** SessionTransientFilterParser. */
 public class SessionTransientFilterParser {
 
+  /** parseTransientFilter. */
   public static Function<List<Session>, List<Session>> parseTransientFilter(
       String transientFilter) {
     return sessions -> {
@@ -56,6 +57,7 @@ public class SessionTransientFilterParser {
     };
   }
 
+  /** applyTransientFilter. */
   private static List<Session> applyTransientFilter(
       String keyAndPotentialOperator, String value, List<Session> sessions) {
     String operator = "=";
@@ -72,6 +74,7 @@ public class SessionTransientFilterParser {
     return filterByTransientProperty(key, value, operator, sessions);
   }
 
+  /** filterByTransientProperty. */
   private static List<Session> filterByTransientProperty(
       String key, String value, String operator, List<Session> sessions) {
     List<Session> result = new ArrayList<>();
@@ -121,6 +124,7 @@ public class SessionTransientFilterParser {
     return result;
   }
 
+  /** filterByComparison. */
   private static <T extends Comparable<T>> List<Session> filterByComparison(
       List<Session> sessions, Function<Session, T> extractor, T value, String operator) {
     List<Session> result = new ArrayList<>();
