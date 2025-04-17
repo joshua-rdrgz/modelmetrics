@@ -6,13 +6,11 @@ import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
 import com.modelmetrics.api.modelmetrics.exception.UnauthorizedSessionAccessException;
-import com.modelmetrics.api.modelmetrics.helper.session.PlatformStatus;
+import com.modelmetrics.api.modelmetrics.service.session.SessionFilterParser;
 import com.modelmetrics.api.modelmetrics.service.session.SessionService;
 import com.modelmetrics.api.modelmetrics.specification.SessionSpecifications;
-import com.modelmetrics.api.modelmetrics.util.SpecificationBuilder;
 import jakarta.validation.Valid;
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,53 +50,17 @@ public class SessionController {
   public ResponseEntity<SuccessResponse<Page<SessionSummaryDto>>> getAllSessions(
       @AuthenticationPrincipal User user,
       Pageable pageable,
-      @RequestParam(required = false) String projectName,
-      @RequestParam(required = false) BigDecimal hourlyRate,
-      @RequestParam(required = false) PlatformStatus platformStatus,
-      @RequestParam(required = false) LocalDate date,
-      @RequestParam(required = false) LocalDate startDate,
-      @RequestParam(required = false) LocalDate endDate,
-      @RequestParam(required = false) Integer tasksCompleted,
-      @RequestParam(required = false) BigDecimal minTotalMinutesWorked,
-      @RequestParam(required = false) BigDecimal maxTotalMinutesWorked,
-      @RequestParam(required = false) BigDecimal minGrossEarnings,
-      @RequestParam(required = false) BigDecimal maxGrossEarnings,
-      @RequestParam(required = false) BigDecimal minTaxAllocation,
-      @RequestParam(required = false) BigDecimal maxTaxAllocation,
-      @RequestParam(required = false) BigDecimal minNetEarnings,
-      @RequestParam(required = false) BigDecimal maxNetEarnings) {
+      @RequestParam(required = false) String filter,
+      @RequestParam(required = false) String transientFilter,
+      @RequestParam(required = false) Set<String> fields) {
 
     Specification<Session> baseSpec =
         Specification.where(SessionSpecifications.createdByUser(user));
 
-    Specification<Session> spec =
-        new SpecificationBuilder<>(baseSpec)
-            .addSpecification(
-                SessionSpecifications.hasProjectName(projectName), projectName != null)
-            .addSpecification(SessionSpecifications.hasHourlyRate(hourlyRate), hourlyRate != null)
-            .addSpecification(
-                SessionSpecifications.hasPlatformStatus(platformStatus), platformStatus != null)
-            .addSpecification(
-                date != null
-                    ? SessionSpecifications.hasDate(date)
-                    : SessionSpecifications.isBetweenDates(startDate, endDate),
-                date != null || (startDate != null && endDate != null))
-            .build();
+    Specification<Session> spec = baseSpec.and(SessionFilterParser.parseFilter(filter));
 
     Page<SessionSummaryDto> sessions =
-        sessionService.getAllSessionsForUser(
-            user,
-            spec,
-            pageable,
-            tasksCompleted,
-            minTotalMinutesWorked,
-            maxTotalMinutesWorked,
-            minGrossEarnings,
-            maxGrossEarnings,
-            minTaxAllocation,
-            maxTaxAllocation,
-            minNetEarnings,
-            maxNetEarnings);
+        sessionService.getAllSessionsForUser(user, spec, pageable, transientFilter, fields);
 
     return new ResponseEntity<>(
         new SuccessResponse<>(sessions, HttpStatus.OK.value()), HttpStatus.OK);

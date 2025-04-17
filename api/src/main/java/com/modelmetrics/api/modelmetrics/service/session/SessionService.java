@@ -4,7 +4,7 @@ import com.modelmetrics.api.modelmetrics.dto.session.SessionDto;
 import com.modelmetrics.api.modelmetrics.dto.session.SessionSummaryDto;
 import com.modelmetrics.api.modelmetrics.entity.User;
 import com.modelmetrics.api.modelmetrics.entity.session.Session;
-import java.math.BigDecimal;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,35 +23,21 @@ public interface SessionService {
   SessionDto createSession(User user, SessionDto sessionDto);
 
   /**
-   * Retrieves a page of sessions for a given user.
+   * Retrieves all sessions for a user with filtering and dynamic field selection.
    *
    * @param user The authenticated user
-   * @param spec The specifications for what to query for
-   * @param pageable The pagination information
-   * @param tasksCompleted Filter for the # of tasks a session should have completed
-   * @param minTotalMinutesWorked Filter for the min total worked minutes of a session
-   * @param maxTotalMinutesWorked Filter for the max total worked minutes of a session
-   * @param minGrossEarnings Filter for the min amount a session should have made
-   * @param maxGrossEarnings Filter for the max amount a session should have made
-   * @param minTaxAllocation Filter for the min amount of taxes to be set aside
-   * @param maxTaxAllocation Filter for the max amount of taxes to be set aside
-   * @param minNetEarnings Filter for the min amount a session should have made after taxes
-   * @param maxNetEarnings Filter for the min amount a session should have made after taxes
-   * @return A page of session summary DTOs
+   * @param specification Specification for database filtering
+   * @param pageable Pagination information
+   * @param transientFilter Filter for transient fields
+   * @param fields Set of field names to include in the response
+   * @return Page of SessionSummaryDto with selected fields
    */
   Page<SessionSummaryDto> getAllSessionsForUser(
       User user,
-      Specification<Session> spec,
+      Specification<Session> specification,
       Pageable pageable,
-      Integer tasksCompleted,
-      BigDecimal minTotalMinutesWorked,
-      BigDecimal maxTotalMinutesWorked,
-      BigDecimal minGrossEarnings,
-      BigDecimal maxGrossEarnings,
-      BigDecimal minTaxAllocation,
-      BigDecimal maxTaxAllocation,
-      BigDecimal minNetEarnings,
-      BigDecimal maxNetEarnings);
+      String transientFilter,
+      Set<String> fields);
 
   /**
    * Updates an existing session and its associated events.
